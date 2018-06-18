@@ -1,0 +1,25 @@
+{
+  "name": "mofron-tag",
+  "version": "0.0.2",
+  "description": "mofron tag",
+  "preferGlobal" : true,
+  "bin" : {
+    "mofron-tag": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mofron/mofron-tag.git"
+  },
+  "dependencies": {
+    "fs" : ""
+  },
+  "author": "simparts",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/mofron/mofron-tag/issues"
+  },
+  "homepage": "https://github.com/mofron/mofron-tag#readme"
+}

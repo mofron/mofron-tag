@@ -1,80 +1,73 @@
 /**
- * @file config.js
- * @author simpart
+ * @file template.js
+ * @brief
+ * @author 
  */
-var loout  = require('./output.js');
-var lopars = require('./parse.js');
-var tmpl   = require('./template/component');
-var thisobj = null;
+let thisobj = null;
+
+let list = [];
+
+let getValue = (prm) => {
+    try {
+        let sp_str = prm.split(',');
+        if (1 === sp_str.length) {
+            return "'" + sp_str[0] + "'";
+        } else {
+            let ret = '[';
+            for (let sidx in sp_str) {
+                ret += "'" + sp_str[sidx] + "',";
+            }
+            return ret + "]";
+        }
+    } catch (e) {
+        console.error(e.stack);
+        throw e;
+    }
+}
 
 try {
     if (null !== thisobj) {
         module.exports = thisobj;
     }
-    
+
     thisobj = {
-        parse : function (tg) {
+        add: (prm) => {
             try {
-                let chd = lopars.filter(tg.children);
-                if (null === chd) {
-                    throw new Error("could not find child");
-                }
-                let cmp_str = "";
-                for (let idx in chd) {
-                    cmp_str += thisobj.component(chd[idx],3) + ",\n";
-                }
-                
-                
-                
-                if (-1 === tmpl.indexOf("{ @component }")) {
-                    throw new Error("invalid template");
-                }
-                
-                tmpl = tmpl.replace(
-                           "{ @component }",
-                           "rc.child([\n" + cmp_str + "        ]);"
-                );
-                console.log(tmpl);
+                list.push(prm);
             } catch (e) {
+                console.error(e.stack);
                 throw e;
             }
         },
-        component : (cmp, ic) => {
+        option: (attr) => {
             try {
-                let ret = thisobj.indent(ic) + "new " + cmp.name + "({\n";
-                let chd = lopars.filter(cmp.children);
-                
-                /* child */
-                if (null !== chd) {
-                    ret += thisobj.indent(ic+1) + "child : [\n";
-                    for (let idx in chd) {
-                        ret += thisobj.indent(ic+2) + thisobj.component(chd[idx]) + ",\n";
-                    }
-                    ret += thisobj.indent(ic+1) + "]\n";
+                let ret = "";
+                for (let aidx in attr) {
+                    ret += attr[aidx].name + ':';
+                    ret += getValue(attr[aidx].value) + ',';
                 }
-                
-                ret += thisobj.indent(ic) + "})";
                 return ret;
             } catch (e) {
+                console.error(e.stack);
                 throw e;
             }
         },
-        indent : (cnt) => {
+        script: () => {
             try {
-                let base = "    ";
-                let ret  = "";
-                for (let loop=0; loop < cnt;loop++) {
-                    ret += base;
+                let ret = '';
+                for (let lidx in list) {
+                    ret += 'new ' + list[lidx].tag + '({'+ thisobj.option(list[lidx].attrs) +'}),'
                 }
                 return ret;
             } catch (e) {
+                console.error(e.stack);
                 throw e;
             }
         }
-    };
-    
+    }
     module.exports = thisobj;
 } catch (e) {
+    console.error(e.stack);
     throw e;
 }
 /* end of file */

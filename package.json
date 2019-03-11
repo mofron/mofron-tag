@@ -1,6 +1,6 @@
 {
   "name": "mofron-tag",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "mofron tag",
   "preferGlobal" : true,
   "bin" : {
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "fs" : "",
-    "htmlparser2" : ""
+    "parse5" : ""
   },
   "author": "simparts",
   "license": "SEE LICENSE IN LICENSE",

@@ -15,7 +15,7 @@ try {
     thisobj = {
         add : (atr) => {
             try {
-                if (2 !== atr.length) {
+                if ((null === atr) || (2 !== atr.length)) {
                     throw new Error('invalid parameter');
                 }
                 /* check tag */

@@ -12,6 +12,8 @@ let getValue = (prm) => {
         let sp_str = prm.split(',');
         if (1 === sp_str.length) {
             return "'" + sp_str[0] + "'";
+        } else if (("[" === prm[0]) && ("]" === prm[prm.length-1])) {
+            return prm;
         } else {
             let ret = '[';
             for (let sidx in sp_str) {

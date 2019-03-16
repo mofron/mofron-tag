@@ -1,6 +1,6 @@
 {
   "name": "mofron-tag",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "mofron tag",
   "preferGlobal" : true,
   "bin" : {
@@ -18,7 +18,7 @@
     "node-html-parser" : ""
   },
   "author": "simparts",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/mofron/mofron-tag/issues"
   },

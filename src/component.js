@@ -41,8 +41,8 @@ let getValue = (prm) => {
         } else {
             let ret = '[';
             for (let sidx in sp_str) {
-                ret += (true === isNumStr(sp_str[0])) ? sp_str[0] : "'" + sp_str[0] + "'";
-                //ret += "'" + sp_str[sidx] + "',";
+                ret += (true === isNumStr(sp_str[0])) ? sp_str[sidx] : "'" + sp_str[sidx] + "'";
+                ret += ',';
             }
             return ret + "]";
         }

@@ -1,6 +1,6 @@
 {
   "name": "mofron-tag",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "mofron tag",
   "preferGlobal" : true,
   "bin" : {

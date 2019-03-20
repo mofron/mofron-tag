@@ -41,11 +41,28 @@ let get_attr = (atr) => {
                 throw e;
             }
         }
-        let ret   = [];
-        let attrs = atr.split(' ');
-        let buf   = null;
+        
+        let ret    = [];
+        let attrs  = atr.split(' ');
+        let buf    = null;
+        let isharf = false;
         for (let aidx in attrs) {
-            buf = attrs[aidx].split('=');
+            if (true === isharf) {
+                if ( ('"' === attrs[aidx][attrs[aidx].length-1]) ||
+                     ("'" === attrs[aidx][attrs[aidx].length-1]) ) {
+                    /* end harf */
+                    isharf = false;
+                }
+                buf[1] += " " + attrs[aidx];
+            } else {
+                buf = attrs[aidx].split('=');
+                if ( (('"' === buf[1][0]) && ('"' !== buf[1][buf[1].length-1])) ||
+                     (("'" === buf[1][0]) && ("'" !== buf[1][buf[1].length-1]))) {
+                    /* harf attr value */
+                    isharf = true;
+                    continue;
+                }
+            }
             ret.push({ name: fil_cmt(buf[0]), value: fil_cmt(buf[1]) });
         }
         return ret;

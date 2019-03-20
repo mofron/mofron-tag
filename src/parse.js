@@ -2,8 +2,8 @@
  * @file index.js
  */
 const parse = require('node-html-parser');
-const req   = require('./require.js');
 const cmp   = require('./component.js');
+const req   = require('./require.js');
 
 let mytree = (prm) => { 
     try {
@@ -12,12 +12,36 @@ let mytree = (prm) => {
              if (undefined === prm[pidx].tagName) {
                  continue;
              }
-             let buf   = {};
-             buf.tag   = prm[pidx].tagName;
-             buf.attrs = get_attr(prm[pidx].rawAttrs);
-             buf.child = (0 === prm[pidx].childNodes.length) ? prm[pidx].childNodes : mytree(prm[pidx].childNodes);
+             let buf    = {};
+             buf.tag    = prm[pidx].tagName;
+             buf.attrs  = get_attr(prm[pidx].rawAttrs);
+             buf.atrobj = [];
+             buf.child  = [];
+             if (0 !== prm[pidx].childNodes.length) {
+                 buf.child = mytree(prm[pidx].childNodes);
+             }
              ret.push(buf);
         }
+        
+        for (let ridx in ret) {
+            for (let cidx in ret[ridx].child) {
+                if (false === req.isExists(ret[ridx].child[cidx].tag)) {
+                    ret[ridx].atrobj.push(ret[ridx].child[cidx]);
+                }
+            }
+        }
+
+        /* delete option child */
+        for (let ridx2 in ret) {
+            for (let cidx2=0; cidx2 < ret[ridx2].child.length ;cidx2++) {
+                if (false === req.isExists(ret[ridx2].child[cidx2].tag)) {
+                    ret[ridx2].child.splice(cidx2, 1); 
+                    cidx2 = -1;
+                    continue;
+                }
+            }
+        }
+
         return ret;
     } catch (e) {
         console.error(e.stack);

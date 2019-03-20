@@ -71,7 +71,13 @@ try {
                 let ret = "";
                 for (let aidx in attr) {
                     ret += attr[aidx].name + ':';
-                    ret += getValue(attr[aidx].value) + ',';
+                    if ( ('effect' === attr[aidx].name) ||
+                         ('layout' === attr[aidx].name) ||
+                         ('event'  === attr[aidx].name) ) {
+                        ret += 'new ' + attr[aidx].value + ',';
+                    } else {
+                        ret += getValue(attr[aidx].value) + ',';
+                    }
                 }
                 return ret;
             } catch (e) {
@@ -88,8 +94,8 @@ try {
                     return ret;
                 }
                 ret += prm.tag + ': [';
-                for (let cidx in prm.child) {
-                    ret += 'new ' + prm.child[cidx].tag + '({' + thisobj.option(prm.child[cidx].attrs) + '}),'
+                for (let cidx in prm.atrobj) {
+                    ret += 'new ' + prm.atrobj[cidx].tag + '({' + thisobj.option(prm.atrobj[cidx].attrs) + '}),'
                 }
                 ret += '],';
                 return ret;
@@ -98,22 +104,33 @@ try {
                 throw e;
             }
         },
-        script: () => {
+        convjs: (lst) => {
             try {
                 let ret = '';
-                for (let lidx in list) {
-                    ret += 'new ' + list[lidx].tag + '({'+ thisobj.option(list[lidx].attrs);
-                    if (0 === list[lidx].child) {
+                for (let lidx in lst) {
+                    ret += 'new ' + lst[lidx].tag + '({'+ thisobj.option(lst[lidx].attrs);
+                    for (let cnf_idx in lst[lidx].atrobj) {
+                        ret += thisobj.config(lst[lidx].atrobj[cnf_idx]);
+                    }
+                    
+                    if (0 === lst[lidx].child) {
                         ret += '}),';
                         continue;
                     }
-                    for (let cidx in list[lidx].child) {
-                        /* check config */
-                        ret += thisobj.config(list[lidx].child[cidx]);
+                    for (let cidx in lst[lidx].child) {
+                        ret += 'child: [' + thisobj.convjs(lst[lidx].child) + ']';
                     }
                     ret += '}),';
                 }
                 return ret;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        },
+        script: () => {
+            try {
+                return thisobj.convjs(list);
             } catch (e) {
                 console.error(e.stack);
                 throw e;

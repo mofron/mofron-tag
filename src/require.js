@@ -6,23 +6,18 @@
 
 let list = [];
 module.exports = {
-    add : (atr) => {
+    add : (tag) => {
         try {
-            if ((null === atr) || (2 !== atr.length)) {
-                throw new Error('invalid parameter');
+            /* check attrs */
+            for (let aidx in tag.attrs) {
+                if ('module' === tag.attrs[aidx].name) {
+                    list.push({
+                        tag: tag.text,
+                        mod: tag.attrs[aidx].value
+                    });
+                    continue;
+                }
             }
-            /* check tag */
-            if (('tag' !== atr[0].name) && ('tag' !== atr[1].name)) {
-                throw new Error('could not find "tag" attribute');
-            }
-            /* check name */
-            if (('name' !== atr[0].name) && ('name' !== atr[1].name)) {
-                throw new Error('could not find "name" attribute');
-            }
-            list.push({
-                tag: ('tag' === atr[0].name) ? atr[0].value : atr[1].value,
-                name: ('name' === atr[0].name) ? atr[0].value : atr[1].value,
-            });
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -46,7 +41,7 @@ module.exports = {
             let ret = '';
             for (let lidx in list) {
                 ret += 'const ' + list[lidx].tag + ' = ';
-                ret += "require('" + list[lidx].name + "');\n";
+                ret += "require('" + list[lidx].mod + "');\n";
             }
             return ret;
         } catch (e) {

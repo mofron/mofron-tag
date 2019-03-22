@@ -17,6 +17,11 @@ let mytree = (prm) => {
              buf.attrs  = get_attr(prm[pidx].rawAttrs);
              buf.atrobj = [];
              buf.child  = [];
+             buf.text   = null;
+             if (0 < prm[pidx].childNodes.length) {
+                 buf.text = prm[pidx].childNodes[0].toString();
+             }
+
              if (0 !== prm[pidx].childNodes.length) {
                  buf.child = mytree(prm[pidx].childNodes);
              }
@@ -103,7 +108,12 @@ module.exports = (txt) => {
         /* parse tag */
         for (let pidx in prs_ret) {
             if ('require' === prs_ret[pidx].tag) {
-                req.add(prs_ret[pidx].attrs);
+                for (let tidx in prs_ret[pidx].atrobj) {
+                    if ('tag' !== prs_ret[pidx].atrobj[tidx].tag) {
+                        throw new Error('unknown tag');
+                    }
+                    req.add(prs_ret[pidx].atrobj[tidx]);
+                }
             } else if (true === req.isExists(prs_ret[pidx].tag)) {
                 cmp.add(prs_ret[pidx]);
             } else {

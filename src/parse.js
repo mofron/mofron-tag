@@ -86,7 +86,7 @@ let get_attr = (atr) => {
             } else {
                 buf = attrs[aidx].split('=');
                 if ( (('"' === buf[1][0]) && ('"' !== buf[1][buf[1].length-1])) ||
-                     (("'" === buf[1][0]) && ("'" !== buf[1][buf[1].length-1]))) {
+                     (("'" === buf[1][0]) && ("'" !== buf[1][buf[1].length-1])) ) {
                     /* harf attr value */
                     isharf = true;
                     continue;

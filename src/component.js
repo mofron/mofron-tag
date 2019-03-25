@@ -114,6 +114,17 @@ try {
                          ('layout' === attr[aidx].name) ||
                          ('event'  === attr[aidx].name) ) {
                         ret += 'new ' + attr[aidx].value + ',';
+                    } else if ('style' === attr[aidx].name) {
+                        let sty = getValue(attr[aidx].value);
+                        sty = sty.replace(/;/g, ',');
+                        sty = sty.substring(1, sty.length-2);
+                        let sp_sty = sty.split(':');
+                        ret += '{';
+                        for (let sidx=0; sidx < sp_sty.length ;sidx+=2) {
+                            ret += '"' + sp_sty[sidx] + '" : ';
+                            ret += '"' + sp_sty[sidx+1] + '",';
+                        }
+                        ret += '},'
                     } else {
                         ret += getValue(attr[aidx].value) + ',';
                     }

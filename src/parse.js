@@ -30,7 +30,7 @@ let mytree = (prm) => {
         
         for (let ridx in ret) {
             for (let cidx in ret[ridx].child) {
-                if (false === req.isExists(ret[ridx].child[cidx].tag)) {
+                if (false === req.isExists(ret[ridx].child[cidx].text)) {
                     ret[ridx].atrobj.push(ret[ridx].child[cidx]);
                 }
             }
@@ -92,7 +92,17 @@ let get_attr = (atr) => {
                     continue;
                 }
             }
-            ret.push({ name: fil_cmt(buf[0]), value: fil_cmt(buf[1]) });
+            let ret_hit = false;
+            for (let ridx in ret) {
+                if (fil_cmt(buf[0]) === ret[ridx].name) {
+                    ret[ridx].value = fil_cmt(buf[1]);
+                    ret_hit = true;
+                    break;
+                }
+            }
+            if (false === ret_hit) {
+                ret.push({ name: fil_cmt(buf[0]), value: fil_cmt(buf[1]) });
+            }
         }
         return ret;
     } catch (e) {
@@ -105,7 +115,7 @@ module.exports = (txt) => {
     try {
         let prs_ret = parse.parse(txt).childNodes;
         prs_ret = mytree(prs_ret);
-        /* parse tag */
+        /* check require */
         for (let pidx in prs_ret) {
             if ('require' === prs_ret[pidx].tag) {
                 for (let tidx in prs_ret[pidx].atrobj) {
@@ -114,9 +124,17 @@ module.exports = (txt) => {
                     }
                     req.add(prs_ret[pidx].atrobj[tidx]);
                 }
-            } else if (true === req.isExists(prs_ret[pidx].tag)) {
+            }
+        }
+        /* remake tree */
+        prs_ret = parse.parse(txt).childNodes;
+        prs_ret = mytree(prs_ret);
+        
+        /* parse tag */
+        for (let pidx in prs_ret) {
+            if (true === req.isExists(prs_ret[pidx].tag)) {
                 cmp.add(prs_ret[pidx]);
-            } else {
+            } else if ('require' !== prs_ret[pidx].tag) {
                 console.warn('unknown component:' + prs_ret[pidx].tag);
             }
         }

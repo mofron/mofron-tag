@@ -4,7 +4,9 @@
  * @author 
  */
 
-let list = [];
+let list = [
+    { tag: 'mf', mod: 'mofron' }
+];
 module.exports = {
     add : (tag) => {
         try {

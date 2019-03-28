@@ -5,7 +5,7 @@
  */
 
 let list = [
-    { tag: 'mf', mod: 'mofron' }
+    { tag: 'mf', mod: '"mofron"' }
 ];
 module.exports = {
     add : (tag) => {
@@ -38,12 +38,12 @@ module.exports = {
             throw e;
         }
     },
-    script : () => {
+    toScript : () => {
         try {
             let ret = '';
             for (let lidx in list) {
                 ret += 'const ' + list[lidx].tag + ' = ';
-                ret += "require('" + list[lidx].mod + "');\n";
+                ret += "require(" + list[lidx].mod + ");\n";
             }
             return ret;
         } catch (e) {

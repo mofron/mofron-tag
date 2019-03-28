@@ -3,8 +3,9 @@
  * @brief mofron-tag command
  * @author simparts
  */
-const fs   = require('fs');
-const parse = require('./src/parse.js');
+const fs    = require('fs');
+const parse = require('./src/parse/ctrl.js');
+const conv  = require('./src/conv/ctrl.js');
 
 let write = (js) => {
     try {
@@ -30,9 +31,9 @@ let write = (js) => {
 fs.readFile(
     (3 > process.argv.length) ?  './tag/index.mof' : process.argv[2],
     'utf8',
-    function (err, text) {
+    function (err, tag) {
         try {
-            write(parse(text));
+            write(conv(parse(tag)));
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -40,4 +41,3 @@ fs.readFile(
     }
 );
 /* end of file */
-

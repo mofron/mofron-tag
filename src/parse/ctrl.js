@@ -13,7 +13,8 @@ const attr    = require('./attrs.js');
 let initAttrs = (req, cmp) => {
     try {
         for (let cidx=0; cidx < cmp.child.length ; cidx++) {
-            if (false === req.isExists(cmp.child[cidx].tag)) {
+            if ( (false === req.isExists(cmp.child[cidx].tag)) &&
+                 ('Component' !== cmp.child[cidx].tag)) {
                 /* this child is attrs, replace object */
                 /* add attr */
                 cmp.attrs.push(attr.object(cmp.child[cidx]));
@@ -37,8 +38,12 @@ let initAttrs = (req, cmp) => {
  */
 module.exports = (txt) => {
     try {
-        let prs_ret = tag_prs.parse(txt).childNodes;
-        prs_ret     = tree(prs_ret);
+        let prs_ret = tag_prs.parse(
+            txt,
+            { script: true, style: true }
+        ).childNodes;
+        
+        prs_ret = tree(prs_ret);
 
         let ret = {
             require: null,

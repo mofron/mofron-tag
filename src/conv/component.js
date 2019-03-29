@@ -46,6 +46,9 @@ try {
         },
         style: (prm) => {
             try {
+                if ('object' === typeof prm) {
+                    return thisobj.style("'" + prm.text + "'");
+                }
                 prm = prm.substring(1, prm.length-1);
                 let ret = "{";
                 /* delete space */
@@ -97,7 +100,7 @@ try {
                     let val = prm[aidx].value;
                     
                     if ('style' === prm[aidx].name) {
-                        ret += nme + thisobj.style(val) + ',';
+                        ret += 'style:' + thisobj.style(val) + ',';
                     } else if ('option' === prm[aidx].name) {
                         ret += thisobj.option(val) + ',';
                     } else if ('string' === typeof val) {
@@ -136,7 +139,9 @@ try {
             try {
                 let ret = "";
                 for (let cmp_idx in cmp) {
-                    ret += "new " + cmp[cmp_idx].tag + "({";
+                    ret += "new ";
+                    ret += ('Component' === cmp[cmp_idx].tag) ? 'mf.' : '';
+                    ret += cmp[cmp_idx].tag + "({";
                     
                     /* add text */
                     if (null !== cmp[cmp_idx].text) {
@@ -144,14 +149,14 @@ try {
                     }
                     
                     /* add attrs */
-                    ret += thisobj.attrs(cmp[cmp_idx].attrs);
-                    
+                    let atr = thisobj.attrs(cmp[cmp_idx].attrs);
+                    if ("" !== atr) {
+                        ret += thisobj.attrs(cmp[cmp_idx].attrs) + ",";
+                    }
                     /* add child */
                     if (0 !== cmp[cmp_idx].child.length) {
-                        ret += ",child: ["
-                        for (let chd_idx in cmp[cmp_idx].child) {
-                            ret += thisobj.toScript(cmp[cmp_idx].child);
-                        }
+                        ret += "child: ["
+                        ret += thisobj.toScript(cmp[cmp_idx].child);
                         ret += "]"
                     }
                     ret += "}),"

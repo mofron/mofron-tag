@@ -79,9 +79,9 @@ try {
                 }
                 
                 for (let ridx2 in ret) {
-
+                    
                     ret[ridx2].value = thisobj.array(ret[ridx2].value);
-
+                    
                     if (true === Array.isArray(ret[ridx2].value)) {
                         for (let vidx in ret[ridx2].value) {
                             if (true === isNumStr(ret[ridx2].value[vidx])) {
@@ -104,6 +104,13 @@ try {
             try {
                 let isHarf = (p1) => {
                     try {
+                        if ("'" === p1[0]) {
+                            return ("'" === p1[p1.length-1]) ? false : true;
+                        } else if ('"' === p1[0]) {
+                            return ('"' === p1[p1.length-1]) ? false : true;
+                        } else if (p1.match(/\w+[(]/g)) {
+                            return (')' === p1[p1.length-1]) ? false : true;
+                        }
                         return false;
                     } catch (e) {
                         console.log(e.stack);
@@ -116,12 +123,22 @@ try {
                     return prm;
                 }
                 
-                for (let pidx in sp_prm) {
-                    if (true === isHarf(sp_prm[pidx])) {
-                        throw new Error('not supported');
-                    } else {
-                        ret.push(sp_prm[pidx]);
+                let sp_buf = null;
+                for (let sp_idx=0; sp_idx < sp_prm.length ;sp_idx++) {
+                    if (true === isHarf(sp_prm[sp_idx])) {
+                        if ((sp_idx+1) >= sp_prm.length) {
+                            throw new Error('invalid attr: ' + sp_prm[sp_idx]);
+                        }
+                        sp_buf = sp_prm[sp_idx] + ',' + sp_prm[sp_idx+1];
+                        sp_prm[sp_idx] = sp_buf;
+                        sp_prm.splice(sp_idx+1, 1);
+                        sp_idx = -1;
+                        continue;
                     }
+                }
+                
+                for (let sp_idx2 in sp_prm) {
+                    ret.push(sp_prm[sp_idx2]);
                 }
                 return ret;
             } catch (e) {

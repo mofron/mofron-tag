@@ -23,8 +23,14 @@ let tree = (prm) => {
              /* get text */
              buf.text   = null;
              if (0 < prm[pidx].childNodes.length) {
-                 if ('\n' !== prm[pidx].childNodes[0].toString()[0]) {
-                     buf.text = prm[pidx].childNodes[0].toString();
+                 let txt = prm[pidx].childNodes[0].toString().split('\n');
+                 if (1 === txt.length) {
+                     buf.text = ('' === txt[0]) ? null : txt[0];
+                 } else {
+                     txt = txt[1].split(/^\s+/g);
+                     if (1 < txt.length) {
+                         buf.text = ('' === txt[1]) ? null : txt[1];
+                     }
                  }
              }
              

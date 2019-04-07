@@ -24,18 +24,50 @@ try {
     if (null !== thisobj) {
         module.exports = thisobj;
     }
-
+    
     thisobj = {
+        theme: (prm) => {
+            try {
+                let ret     = "{";
+                let thm_cnt = null;
+                for (let pidx in prm) {
+                    if (undefined === prm[pidx].attrs.target) {
+                        /* replace type is option */
+                        ret += prm[pidx].tag + ':';
+                        ret += '{' + thisobj.attrs(prm[pidx].attrs) + '}';
+                    } else {
+                        ret += prm[pidx].attrs.target + ':';
+                        delete prm[pidx].attrs.target;
+                    
+                        if (1 > Object.keys(prm[pidx].attrs).length) {
+                            /* replace type is class */
+                            ret += prm[pidx].tag;
+                        } else {
+                            /* replace type is class with option */
+                            ret += '[' + prm[pidx].tag + ',';
+                            ret += '{' + thisobj.attrs(prm[pidx].attrs) + '}]';
+                        }
+                    }
+                    ret += ",";
+                    
+                }
+                ret = ret.substring(0, ret.length-1);
+                return ret + "}";
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        },
         option: (prm) => {
             try {
                 let ret = "";
                 for (let pidx in prm.attrs) {
-                    ret += prm.attrs[pidx].name + ":";
+                    ret += pidx + ":";
                     ret += "new mf.Option({";
-                    if (null !== prm.attrs[pidx].value.text) {
-                        ret += "text: '" + prm.attrs[pidx].value.text + "',";
+                    if (null !== prm.attrs[pidx].text) {
+                        ret += "text: '" + prm.attrs[pidx].text + "',";
                     }
-                    ret += thisobj.attrs(prm.attrs[pidx].value.attrs);
+                    ret += thisobj.attrs(prm.attrs[pidx].attrs);
                     ret += "})";
                 }
                 return ret;
@@ -82,8 +114,8 @@ try {
                 ret += (1 < prm.attrs.length) ? "[" : "";
                 
                 for (let aidx in prm.attrs) {
-                    ret += "new " + prm.attrs[aidx].name + "({";
-                    ret += thisobj.attrs(prm.attrs[aidx].value.attrs) + "})";
+                    ret += "new " + aidx + "({";
+                    ret += thisobj.attrs(prm.attrs[aidx].attrs) + "})";
                 }
                 ret += (1 < prm.attrs.length) ? "]" : "";
                 return ret;
@@ -96,13 +128,15 @@ try {
             try {
                 let ret = "";
                 for (let aidx in prm) {
-                    let nme = prm[aidx].name + ':';
-                    let val = prm[aidx].value;
+                    let nme = aidx + ':';
+                    let val = prm[aidx];
                     
-                    if ('style' === prm[aidx].name) {
+                    if ('style' === aidx) {
                         ret += 'style:' + thisobj.style(val) + ',';
-                    } else if ('option' === prm[aidx].name) {
+                    } else if ('option' === aidx) {
                         ret += thisobj.option(val) + ',';
+                    } else if ('theme' === aidx) {
+                        ret += nme + thisobj.theme(val.attrs) + ',';
                     } else if ('string' === typeof val) {
                         ret += nme;
                         if ( (false === isComment(val)) && 
@@ -126,7 +160,7 @@ try {
                     } else if ('object' === typeof val) {
                         ret += nme + thisobj.atrobj(val) + ',';
                     } else {
-                        throw new Error('unknown attrs:' + prm[aidx].name);
+                        throw new Error('unknown attrs:' + aidx);
                     }
                 }
                 return ret.substring(0, ret.length-1);
@@ -151,7 +185,8 @@ try {
                     /* add attrs */
                     let atr = thisobj.attrs(cmp[cmp_idx].attrs);
                     if ("" !== atr) {
-                        ret += thisobj.attrs(cmp[cmp_idx].attrs) + ",";
+                        ret += atr;
+                        ret += (0 !== cmp[cmp_idx].child.length) ? "," : "";
                     }
                     /* add child */
                     if (0 !== cmp[cmp_idx].child.length) {

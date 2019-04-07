@@ -12,10 +12,10 @@ module.exports = {
         try {
             /* check attrs */
             for (let aidx in tag.attrs) {
-                if ('module' === tag.attrs[aidx].name) {
+                if ('module' === aidx) {
                     list.push({
                         tag: tag.text,
-                        mod: tag.attrs[aidx].value
+                        mod: tag.attrs[aidx]
                     });
                     continue;
                 }

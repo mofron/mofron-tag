@@ -44,7 +44,7 @@ try {
                 if (0 === txt.length) {
                     return [];
                 }
-                let ret    = [];
+                let ret    = {};
                 let attrs  = txt.split(' ');
                 let buf    = null;
                 let isharf = false;
@@ -67,30 +67,31 @@ try {
                     }
                     let ret_hit = false;
                     for (let ridx in ret) {
-                        if (buf[0] === ret[ridx].name) {
-                            ret[ridx].value = buf[1];
+                        if (buf[0] === ridx) {
+                            /* replace attr value */
+                            ret[ridx] = buf[1];
                             ret_hit = true;
                             break;
                         }
                     }
                     if (false === ret_hit) {
-                        ret.push({ name: buf[0], value: buf[1] });
+                        ret[buf[0]] = buf[1];
                     }
                 }
                 
                 for (let ridx2 in ret) {
                     
-                    ret[ridx2].value = thisobj.array(ret[ridx2].value);
+                    ret[ridx2] = thisobj.array(ret[ridx2]);
                     
-                    if (true === Array.isArray(ret[ridx2].value)) {
-                        for (let vidx in ret[ridx2].value) {
-                            if (true === isNumStr(ret[ridx2].value[vidx])) {
-                                ret[ridx2].value[vidx] = parseInt(ret[ridx2].value[vidx]);
+                    if (true === Array.isArray(ret[ridx2])) {
+                        for (let vidx in ret[ridx2]) {
+                            if (true === isNumStr(ret[ridx2][vidx])) {
+                                ret[ridx2][vidx] = parseInt(ret[ridx2][vidx]);
                             }
                         }
                     } else {
-                        if (true === isNumStr(ret[ridx2].value)) {
-                            ret[ridx2].value = parseInt(ret[ridx2].value);
+                        if (true === isNumStr(ret[ridx2])) {
+                            ret[ridx2] = parseInt(ret[ridx2]);
                         }
                     }
                 }
@@ -148,8 +149,10 @@ try {
         },
         object: (prm) => {
             try {
+                let chd_atr = null;
                 for (let cidx in prm.child) {
-                    prm.attrs.push(thisobj.object(prm.child[cidx]));
+                    chd_atr = thisobj.object(prm.child[cidx]);
+                    prm.attrs[chd_atr.name] = chd_atr.value;
                 }
                 prm.child = [];
                 return { name: prm.tag, value: prm };

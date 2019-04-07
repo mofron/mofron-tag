@@ -17,7 +17,9 @@ let initAttrs = (req, cmp) => {
                  ('Component' !== cmp.child[cidx].tag)) {
                 /* this child is attrs, replace object */
                 /* add attr */
-                cmp.attrs.push(attr.object(cmp.child[cidx]));
+                let atr = attr.object(cmp.child[cidx]);
+                cmp.attrs[atr.name] = atr.value;
+                //cmp.attrs.push(attr.object(cmp.child[cidx]));
                 
                 /* remove child */
                 cmp.child.splice(cidx, 1);

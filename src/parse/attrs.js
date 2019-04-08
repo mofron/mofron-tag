@@ -58,6 +58,9 @@ try {
                         buf[1] += " " + attrs[aidx];
                     } else {
                         buf = attrs[aidx].split('=');
+                        if (1 === buf.length) {
+                            continue;
+                        }
                         if ( (('"' === buf[1][0]) && ('"' !== buf[1][buf[1].length-1])) ||
                              (("'" === buf[1][0]) && ("'" !== buf[1][buf[1].length-1])) ) {
                             /* harf attr value */

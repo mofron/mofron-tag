@@ -12,11 +12,12 @@ module.exports = (prs) => {
         let ret = "";
         /* require area */
         ret += prs.require.toScript();
+        //comp.add(prs.component);
         
         /* component area */
-        ret += 'try {\n    module.exports=[\n';
-        ret += '        ' + comp.toScript(prs.component) + '\n';
-        ret += '    ];\n} catch (e) {\n    console.error(e.stack);\n    throw e;\n}';
+        ret += 'try {\n';
+        ret += comp.toScript(prs.component);
+        ret += '\n} catch (e) {\n    console.error(e.stack);\n    throw e;\n}';
         
         return ret;
     } catch (e) {

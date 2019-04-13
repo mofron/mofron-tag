@@ -2,7 +2,8 @@
  * @file ./conv/ctrl.js
  * @brief converter controller
  */
-const comp = require('./component.js');
+const Comp = require('./Component.js');
+
 
 /**
  * convert parsed object to script string
@@ -15,8 +16,9 @@ module.exports = (prs) => {
         //comp.add(prs.component);
         
         /* component area */
+        let cmp_gen = new Comp();
         ret += 'try {\n';
-        ret += comp.toScript(prs.component);
+        ret += cmp_gen.toScript(prs.component, prs.template);
         ret += '\n} catch (e) {\n    console.error(e.stack);\n    throw e;\n}';
         
         return ret;

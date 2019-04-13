@@ -9,7 +9,7 @@ const conv  = require('./src/conv/ctrl.js');
 
 let write = (js) => {
     try {
-        if (3 > process.argv.length) {
+        if (4 > process.argv.length) {
             console.log(js);
         } else if (4 === process.argv.length) {
             fs.writeFile(

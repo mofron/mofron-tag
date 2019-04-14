@@ -44,9 +44,11 @@ module.exports = class extends Base {
                 ret += (false === this.gencnf().minify) ? "\n" : "";
             }
             if (undefined !== cmp.attrs.template) {
-                ret = (false === this.gencnf().minify) ? "    " + ret : ret;
-                ret += cmp.name + ".child(" + this.template(cmp.attrs.template) + ");";
-                ret += (false === this.gencnf().minify) ? "\n" : "";
+                for (let tidx in cmp.attrs.template) {
+                    ret += (false === this.gencnf().minify) ? "    " : "";
+                    ret += cmp.name + ".child(" + this.template(cmp.attrs.template[tidx]) + ");";
+                    ret += (false === this.gencnf().minify) ? "\n" : "";
+                }
             }
             return ret + buf;
         } catch (e) {

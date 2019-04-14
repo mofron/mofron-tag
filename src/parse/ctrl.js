@@ -18,7 +18,14 @@ let initAttrs = (req, cmp) => {
                 /* this child is attrs, replace object */
                 /* add attr */
                 let atr = attr.object(cmp.child[cidx]);
-                cmp.attrs[atr.name] = atr.value;
+                if ('template' === atr.name) {
+                    if (false === Array.isArray(cmp.attrs[atr.name])) {
+                        cmp.attrs[atr.name] = [];
+                    }
+                    cmp.attrs[atr.name].push(atr.value);
+                } else {
+                    cmp.attrs[atr.name] = atr.value;
+                }
                 
                 /* remove child */
                 cmp.child.splice(cidx, 1);

@@ -16,17 +16,15 @@ let initAttrs = (req, cmp) => {
             if ( (false === req.isExists(cmp.child[cidx].tag)) &&
                  ('Component' !== cmp.child[cidx].tag)) {
                 /* this child is attrs, replace object */
-                /* add attr */
-                let atr = attr.object(cmp.child[cidx]);
-                if ('template' === atr.name) {
-                    if (false === Array.isArray(cmp.attrs[atr.name])) {
-                        cmp.attrs[atr.name] = [];
-                    }
-                    cmp.attrs[atr.name].push(atr.value);
+                let atrbuf = cmp.attrs[cmp.child[cidx].tag];
+                if (true === Array.isArray(atrbuf)) {
+                    cmp.attrs[cmp.child[cidx].tag].push(cmp.child[cidx]);
+                } else if (undefined !== atrbuf) {
+                    cmp.attrs[cmp.child[cidx].tag] = [atrbuf, cmp.child[cidx]];
                 } else {
-                    cmp.attrs[atr.name] = atr.value;
+                    cmp.attrs[cmp.child[cidx].tag] = cmp.child[cidx];
                 }
-                
+                initAttrs(req, cmp.child[cidx]);
                 /* remove child */
                 cmp.child.splice(cidx, 1);
                 cidx--;

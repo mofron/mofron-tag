@@ -4,6 +4,7 @@
  * @author simparts
  */
 const Base = require('./BaseGen.js');
+const util = require('./util.js');
 
 module.exports = class extends Base {
     
@@ -16,7 +17,17 @@ module.exports = class extends Base {
                 if ('name' === aidx) {
                     continue;
                 }
-                prm += aidx + ":" + tmp.attrs[aidx] + ",";
+                prm += aidx + ":";
+                if ('string' === typeof tmp.attrs[aidx]) {
+                    prm += tmp.attrs[aidx];
+                } else {
+                    if (true === util.isComment(tmp.attrs[aidx].text)) {
+                        prm += tmp.attrs[aidx].text;
+                    } else {
+                        prm += '"' + tmp.attrs[aidx].text + '"';
+                    }
+                }
+                prm += ",";
             }
             prm = (1 < Object.keys(tmp.attrs).length) ? prm.substring(0, prm.length-1) + "}" : "";
             return ret + prm + ")";

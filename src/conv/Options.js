@@ -6,12 +6,14 @@
 const Base = require('./BaseGen.js');
 const util = require('./util.js');
 
-module.exports = class extends Base {
+let option = class extends Base {
     
     constructor (opt) {
         try {
             super(opt);
-            this.gencnf().autoComment = (undefined !== opt.autoComment) ? opt.autoComment : true;
+            if (undefined === this.gencnf().autoComment) {
+                this.gencnf().autoComment = true;
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -24,7 +26,7 @@ module.exports = class extends Base {
                 return this.style("'" + prm.text + "'");
             }
             prm = prm.substring(1, prm.length-1);
-            let ret = "style:{";
+            let ret = "{";
             /* delete space */
             let nsp     = prm.split(' ');
             let nsp_str = "";
@@ -53,14 +55,15 @@ module.exports = class extends Base {
     
     option (prm) {
         try {
-             let ret = "";
-             for (let pidx in prm.attrs) {
-                 ret += pidx + ":";
+            this.m_optkey = null;
+            let ret = "";
+            for (let pidx in prm.attrs) {
+                 ret += prm.attrs[pidx].tag + ":";
                  ret += "new mf.Option(";
-                 ret += this.optgen(prm.attrs[pidx]);
-                 ret += ")";
-             }
-             return ret;
+                 ret += new option()._optgen(prm.attrs[pidx]);
+                 ret += "),";
+            }
+             return ret.substring(0, ret.length-1);
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -69,24 +72,24 @@ module.exports = class extends Base {
     
     theme (prm) {
         try {
-            let ret     = "theme:{";
+            let ret     = "{";
             let thm_cnt = null;
-            for (let pidx in prm.attrs) {
-                if (undefined === prm.attrs[pidx].target) {
+            for (let pidx in prm.child) {
+                if (undefined === prm.child[pidx].target) {
                     /* replace type is option */
-                    ret += prm.attrs[pidx].tag + ':';
-                    ret += this.optgen(prm.attrs[pidx]);
+                    ret += prm.child[pidx].tag + ':';
+                    ret += new option()._optgen(prm.child[pidx]);
                 } else {
-                    ret += prm.attrs[pidx].target + ':';
-                    delete prm.attrs[pidx].target;
+                    ret += prm.child[pidx].target + ':';
+                    delete prm.child[pidx].target;
                     
-                    if (1 > Object.keys(prm.attrs[pidx]).length) {
+                    if (1 > Object.keys(prm.child[pidx]).length) {
                         /* replace type is class */
-                        ret += prm.attrs[pidx].tag;
+                        ret += prm.child[pidx].tag;
                     } else {
                         /* replace type is class with option */
-                        ret += '[' + prm.attrs[pidx].tag + ',';
-                        ret += '{' + this.optgen(prm.attrs[pidx]) + '}]';
+                        ret += '[' + prm.child[pidx].tag + ',';
+                        ret += '{' + new option()._optgen(prm.child[pidx]) + '}]';
                     }
                 }
                 ret += ",";
@@ -99,11 +102,11 @@ module.exports = class extends Base {
         }
     }
     
-    template () {return "";}
     
     name (prm) {
         try {
-            let ret = 'objkey:';
+            let ret = "";
+            this.m_optkey = 'objkey';
             if (true === this.gencnf().autoComment) {
                 ret += (true === util.isComment(prm)) ? prm : '"' + prm + '"';
             } else {
@@ -116,19 +119,20 @@ module.exports = class extends Base {
         }
     }
     
-    otheropt (nm, prm) {
+    _otheropt (prm) {
         try {
             let ret = "";
             if ('string' === typeof prm) {
-                ret += nm + ":";
                 if ( (false === util.isComment(prm)) &&
                      ('number' !== typeof prm) &&
                      (null !== prm.match(/\w+[(].*[)]/g)) ) {
                     ret += 'new ';
                 }
                 ret += prm;
+            } else if ('number' === typeof prm) {
+                ret += prm;
             } else if (true === Array.isArray(prm)) {
-                ret += nm + ':[';
+                ret += '[';
                 for (let vidx in prm) {
                     if ( (false === util.isComment(prm[vidx])) &&
                          ('number' !== typeof prm[vidx]) &&
@@ -140,15 +144,15 @@ module.exports = class extends Base {
                 ret = ret.substring(0, ret.length-1);
                 ret += ']';
             } else if ('object' === typeof prm) {
-                let ret = nm + ":";
-                ret += (1 < prm.attrs.length) ? "[" : "";
-                for (let aidx in prm) {
-                    ret += "new " + aidx + "(";
-                    ret += this.optgen(prm.attrs[aidx]) + ")";
+                ret += (1 < prm.child.length) ? "[" : "";
+                for (let aidx in prm.child) {
+                    ret += "new " + prm.child[aidx].tag + "(";
+                    ret += new option()._optgen(prm.child[aidx]) + "),";
                 }
-                ret += (1 < prm.length) ? "]" : "";
+                ret = ret.substring(0, ret.length-1);
+                ret += (1 < prm.child.length) ? "]" : "";
             } else {
-                throw new Error('unknown attrs:' + aidx);
+                throw new Error('unknown attr:');
             }
             return ret;
         } catch (e) {
@@ -157,10 +161,10 @@ module.exports = class extends Base {
         }
     }
     
-    optgen (cmp) {
+    _optgen (cmp) {
         try {
             let ret = "{";
-            if (null !== cmp.text) {
+            if ((undefined !== cmp.text) && (null !== cmp.text)) {
                 ret += "text: ";
                 if (true === this.gencnf().autoComment) {
                     ret += (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
@@ -169,15 +173,21 @@ module.exports = class extends Base {
                 }
                 ret += ",";
             }
+            
             for (let aidx in cmp.attrs) {
+                this.m_optkey = aidx;
+                
                 if ( ('function' === typeof this[aidx]) &&
-                     ('otheropt' !== typeof this[aidx]) &&
                      ('toScript' !== aidx) &&
                      ('gencnf' !== aidx) &&
-                     ('optgen' !== aidx) ) {
-                    ret += this[aidx](cmp.attrs[aidx]);
+                     ('_' !== aidx[0]) ) {
+                    let optcnt = this[aidx](cmp.attrs[aidx]);
+                    ret += (null !== this.m_optkey) ? this.m_optkey + ":" + optcnt : optcnt;
                 } else {
-                    ret += this.otheropt(aidx, cmp.attrs[aidx]);
+                    if ('template' === aidx) {
+                        continue;
+                    }
+                    ret += this.m_optkey + ':' + this._otheropt(cmp.attrs[aidx]);
                 }
                 ret += ",";
             }
@@ -193,7 +203,7 @@ module.exports = class extends Base {
             let ret = (false === this.gencnf().minify) ? "    " : "";
             ret += cmp.name + ".option(";
             /* add attrs */
-            ret += this.optgen(cmp);
+            ret += this._optgen(cmp);
             ret += ");";
             ret += (false === this.gencnf().minify) ? "\n" : "";
 
@@ -208,4 +218,5 @@ module.exports = class extends Base {
         }
     }
 }
+module.exports = option;
 /* end of file */

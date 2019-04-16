@@ -42,7 +42,7 @@ try {
         text: (txt) => {
             try {
                 if (0 === txt.length) {
-                    return [];
+                    return {};
                 }
                 let ret    = {};
                 let attrs  = txt.split(' ');
@@ -155,7 +155,10 @@ try {
                 let chd_atr = null;
                 for (let cidx in prm.child) {
                     chd_atr = thisobj.object(prm.child[cidx]);
-                    prm.attrs[chd_atr.name] = chd_atr.value;
+                    if (false === Array.isArray(prm.attrs)) {
+                        prm.attrs = [];
+                    }
+                    prm.attrs.push(chd_atr.value);
                 }
                 prm.child = [];
                 return { name: prm.tag, value: prm };

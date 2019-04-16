@@ -114,14 +114,14 @@ module.exports = class extends Options {
 //        }
 //    }
     
-    optgen (cmp) {
+    _optgen (cmp) {
         try {
             if (null !== cmp.text) {
                 let tag = get_tag(cmp.text);
                 cmp.text = (null !== tag) ? tag : cmp.text;
-                return super.optgen(cmp);
+                return super._optgen(cmp);
             }
-            return super.optgen(cmp);
+            return super._optgen(cmp);
         } catch (e) {
             console.error(e.stack);
             throw e;

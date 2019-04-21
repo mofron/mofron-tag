@@ -38,18 +38,5 @@ module.exports = {
             throw e;
         }
     },
-    toScript : () => {
-        try {
-            let ret = '';
-            for (let lidx in list) {
-                ret += 'const ' + list[lidx].tag + ' = ';
-                ret += "require(" + list[lidx].mod + ");\n";
-            }
-            return ret;
-        } catch (e) {
-            console.error(e.stack);
-            throw e;
-        }
-    }
 }
 /* end of file */

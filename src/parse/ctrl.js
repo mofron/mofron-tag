@@ -52,7 +52,8 @@ module.exports = (txt) => {
         prs_ret = tree(prs_ret);
 
         let ret = {
-            require: null,
+            require: [],
+            responsive: [],
             template: {},
             component: []
         };
@@ -64,17 +65,21 @@ module.exports = (txt) => {
             if ('require' === prs_ret[pidx].tag) {
                 for (let req_idx in prs_ret[pidx].child) {
                     req.add(prs_ret[pidx].child[req_idx]);
+                    ret.require.push(prs_ret[pidx].child[req_idx]);
                 }
             } else if ('template' === prs_ret[pidx].tag) {
                 if (undefined === prs_ret[pidx].attrs.name) {
                     throw new Error('could not find template name');
                 }
                 tmp[prs_ret[pidx].attrs.name] = prs_ret[pidx].child;
+            } else if ('responsive' === prs_ret[pidx].tag) {
+                for (let res_idx in prs_ret[pidx].child) {
+                    ret.responsive.push(prs_ret[pidx].child[res_idx]);
+                }
             } else {
                 cmp.push(prs_ret[pidx]);
             }
         }
-        ret.require = req;
         
         /* init component */
         for (let cidx in cmp) {

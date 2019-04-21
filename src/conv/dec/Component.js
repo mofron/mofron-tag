@@ -5,12 +5,12 @@
  */
 const Declare = require('./Declare.js');
 
-module.exports = class extends Declare {
+let Component = class extends Declare {
     
     constructor (opt) {
         try {
             super(opt);
-            this.gencnf().bsnm = (undefined !== opt.bsnm) ? opt.bsnm : "cmp";
+            this.gencnf().bsnm = ((undefined !== opt) && (undefined !== opt.bsnm)) ? opt.bsnm : "cmp";
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -35,11 +35,11 @@ module.exports = class extends Declare {
             /* genelate child component */
             if (0 !== prm.child.length) {
                 for (let ch_idx in prm.child) {
-                    ret += this.toScript(prm.child[ch_idx]);
+                    this.toScript(prm.child[ch_idx]);
                 }
             }
-            
-            return ret;
+
+            return this.m_script;
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -47,4 +47,5 @@ module.exports = class extends Declare {
     }
     
 }
+module.exports = Component;
 /* end of file */

@@ -4,9 +4,9 @@
  * @author simparts
  */
 const Base = require('./BaseGen.js');
-const util = require('./util.js');
+const util = require('../util.js');
 
-module.exports = class extends Base {
+let Child = class extends Base {
     
     template (tmp) {
         try {
@@ -39,33 +39,34 @@ module.exports = class extends Base {
     
     toScript (cmp) {
         try {
-            let ret  = (0 < cmp.child.length) ? cmp.name + ".child([" : "";
             let buf  = "";
             let name = [];
             for (let cidx in cmp.child) {
                 name.push(cmp.child[cidx].name);
-                buf += this.toScript(cmp.child[cidx]);
+                buf += new Child({ minify: this.gencnf().minify }).toScript(cmp.child[cidx]);
             }
+            /* add child name */
+            let add_scp = '';
             for (let nidx in name) {
-                ret += name[nidx] + ',';
+                add_scp += name[nidx] + ',';
             }
-            if (0 < cmp.child.length) {
-                ret = (false === this.gencnf().minify) ? "    " + ret : ret;
-                ret = ret.substring(0, ret.length-1) + "]);";
-                ret += (false === this.gencnf().minify) ? "\n" : "";
+            if ('' !== add_scp) {
+                add_scp = add_scp.substring(0, add_scp.length-1);
+                this.add(cmp.name + ".child([" + add_scp + "]);");
             }
+            
             if (undefined !== cmp.attrs.template) {
                 for (let tidx in cmp.attrs.template) {
-                    ret += (false === this.gencnf().minify) ? "    " : "";
-                    ret += cmp.name + ".child(" + this.template(cmp.attrs.template[tidx]) + ");";
-                    ret += (false === this.gencnf().minify) ? "\n" : "";
+                    this.add(cmp.name + ".child(" + this.template(cmp.attrs.template[tidx]) + ");");
                 }
             }
-            return ret + buf;
+            /* add child script of cmp.child */
+            return this.m_script + buf;
         } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
 }
+module.exports = Child;
 /* end of file */

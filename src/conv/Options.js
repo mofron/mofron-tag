@@ -4,9 +4,9 @@
  * @author simparts
  */
 const Base = require('./BaseGen.js');
-const util = require('./util.js');
+const util = require('../util.js');
 
-let option = class extends Base {
+let Option = class extends Base {
     
     constructor (opt) {
         try {
@@ -60,7 +60,7 @@ let option = class extends Base {
             for (let pidx in prm.attrs) {
                  ret += prm.attrs[pidx].tag + ":";
                  ret += "new mf.Option(";
-                 ret += new option()._optgen(prm.attrs[pidx]);
+                 ret += new Option()._optgen(prm.attrs[pidx]);
                  ret += "),";
             }
              return ret.substring(0, ret.length-1);
@@ -78,7 +78,7 @@ let option = class extends Base {
                 if (undefined === prm.child[pidx].target) {
                     /* replace type is option */
                     ret += prm.child[pidx].tag + ':';
-                    ret += new option()._optgen(prm.child[pidx]);
+                    ret += new Option()._optgen(prm.child[pidx]);
                 } else {
                     ret += prm.child[pidx].target + ':';
                     delete prm.child[pidx].target;
@@ -89,7 +89,7 @@ let option = class extends Base {
                     } else {
                         /* replace type is class with option */
                         ret += '[' + prm.child[pidx].tag + ',';
-                        ret += '{' + new option()._optgen(prm.child[pidx]) + '}]';
+                        ret += '{' + new Option()._optgen(prm.child[pidx]) + '}]';
                     }
                 }
                 ret += ",";
@@ -102,6 +102,15 @@ let option = class extends Base {
         }
     }
     
+    respsv (prm) {
+        try {
+//console.log(prm);
+            return "undefined";
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
     
     name (prm) {
         try {
@@ -147,7 +156,7 @@ let option = class extends Base {
                 ret += (1 < prm.child.length) ? "[" : "";
                 for (let aidx in prm.child) {
                     ret += "new " + prm.child[aidx].tag + "(";
-                    ret += new option()._optgen(prm.child[aidx]) + "),";
+                    ret += new Option()._optgen(prm.child[aidx]) + "),";
                 }
                 ret = ret.substring(0, ret.length-1);
                 ret += (1 < prm.child.length) ? "]" : "";
@@ -176,7 +185,6 @@ let option = class extends Base {
             
             for (let aidx in cmp.attrs) {
                 this.m_optkey = aidx;
-                
                 if ( ('function' === typeof this[aidx]) &&
                      ('toScript' !== aidx) &&
                      ('gencnf' !== aidx) &&
@@ -200,23 +208,20 @@ let option = class extends Base {
     
     toScript (cmp) {
         try {
-            let ret = (false === this.gencnf().minify) ? "    " : "";
-            ret += cmp.name + ".option(";
-            /* add attrs */
-            ret += this._optgen(cmp);
-            ret += ");";
-            ret += (false === this.gencnf().minify) ? "\n" : "";
-
-            let buf  = "";
+            //let ret = cmp.name + ".option(" + this._optgen(cmp) + ");";
+            this.add(cmp.name + ".option(" + this._optgen(cmp) + ");");
+            //let chd_opt  = "";
             for (let cidx in cmp.child) {
-                buf += this.toScript(cmp.child[cidx]);
+                //ret += this.toScript(cmp.child[cidx]);
+                this.toScript(cmp.child[cidx]);
             }
-            return ret + buf;
+            return this.m_script;
+            //return ret;
         } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
 }
-module.exports = option;
+module.exports = Option;
 /* end of file */

@@ -3,35 +3,9 @@
  * @brief parse attribute
  * @author simparts
  */
+const util = require('../util.js');
 
 let thisobj = null;
-
-let isNumStr = (str) => {
-    try {
-        if ('string' !== typeof str) {
-            return false;
-        }
-        let chk = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        let num = false;
-        for (let sidx=0;sidx < str.length; sidx++) {
-            for (let cidx in chk) {
-                if (str[sidx] === chk[cidx]) {
-                    num = true;
-                    break;
-                }
-            }
-            if (false === num) {
-                return false;
-            }
-            num = false;
-        }
-        return true;
-    } catch (e) {
-        console.error(e.stack);
-        throw e;
-    }
-};
-
 
 try {
     if (null !== thisobj) {
@@ -88,12 +62,12 @@ try {
                     
                     if (true === Array.isArray(ret[ridx2])) {
                         for (let vidx in ret[ridx2]) {
-                            if (true === isNumStr(ret[ridx2][vidx])) {
+                            if (true === util.isNumStr(ret[ridx2][vidx])) {
                                 ret[ridx2][vidx] = parseInt(ret[ridx2][vidx]);
                             }
                         }
                     } else {
-                        if (true === isNumStr(ret[ridx2])) {
+                        if (true === util.isNumStr(ret[ridx2])) {
                             ret[ridx2] = parseInt(ret[ridx2]);
                         }
                     }

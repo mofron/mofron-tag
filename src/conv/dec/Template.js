@@ -36,8 +36,8 @@ module.exports = class extends Declare {
     toScript (cnt) {
         try {
             let val = "(p)=>{";
-            let gen = this.getGen();
             for (let cidx in cnt) {
+                let gen = this.getGen();
                 val += gen.comp.toScript(cnt[cidx]);
                 val += gen.child.toScript(cnt[cidx]);
                 val += gen.options.toScript(cnt[cidx]);

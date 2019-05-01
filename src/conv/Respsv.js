@@ -10,10 +10,14 @@ module.exports = class extends Base {
     
     defStyle (prm) {
         try {
+            this.add("let isdef=[false,false];");
+            this.add('let buf="";');
             this.add("if(null===document.body.getAttribute('style')){");
+            this.add(    "isdef[0]=true;", 2);
             this.add(    "document.body.setAttribute('style','margin:0px;padding:0px;font-size:0.16em;');", 2);
             this.add("}");
             this.add("if(null===document.documentElement.getAttribute('style')){");
+            this.add(    "isdef[1]=true;", 2);
             this.add(    "document.documentElement.setAttribute('style','"+ prm +"');", 2);
             this.add("}");
         } catch (e) {
@@ -25,21 +29,19 @@ module.exports = class extends Base {
     getMedia (prm) {
         try {
             let ret = "@media screen";
-            /* check target type */
-            let tp = "html";
-            for (let pidx in prm.attrs) {
-                if ("target" === pidx) {
-                    tp = prm.attrs[pidx];
-                    delete prm.attrs.target;
-                    break;
+            
+            for (let aidx in prm.attrs) {
+                if ( ("os" === aidx) || ("browser" === aidx)) {
+                    continue;
                 }
+                ret += " and (" + aidx + ':' + prm.attrs[aidx] + ')';
+            }
+            if (true === util.isNumStr(prm.text)) {
+                ret += '{' + "html{font-size:" + prm.text + "%;}}";
+            } else {
+                ret += '{' + prm.text + '}';
             }
             
-            for (let pidx2 in prm.attrs) {
-                ret += " and (" + pidx2 + ":" + prm.attrs[pidx2] + ")";
-            }
-            
-            ret += "{" + tp + "{" + prm.text + "}}";
             return ret;
         } catch (e) {
             console.error(e.stack);
@@ -47,41 +49,57 @@ module.exports = class extends Base {
         }
     }
     
-    getTgtValue (prm, idx) {
+    addHead (prm, ind) {
         try {
-            let ret     = [];
-            let dup     = false;
-            
-            for (let chk_idx=parseInt(idx)-1; chk_idx >= 0 ;chk_idx--) {
-                if ( (prm[idx].tag !== 'mobule') && (prm[idx].tag !== 'tablet') ) {
-                    dup = true;
-                    break;
-                }
-                if (prm[chk_idx].tag === prm[idx].tag) {
-                    dup = true;
-                    break;
-                }
+            let media = this.getMedia(prm);
+            let type  = "html";
+            if (-1 !== media.indexOf("html")) {
+                type = "html";
+            } else if (-1 !== media.indexOf("body")){
+                type = "body";   
             }
             
-            if ('body' === prm[idx].attrs.target) {
-                if (true === dup) {
-                    ret.push('buf=document.body.getAttribute("style");');
-                    ret.push("mf.func.addHeadStyle(buf+'" + this.getMedia(prm[idx]) + "');");
-                } else {
-                    ret.push('document.body.setAttribute("style","");');
-                    ret.push("mf.func.addHeadStyle('" + this.getMedia(prm[idx]) + "');");
-                }
+            if ("html" === type) {
+                this.add("if(true===isdef[0]){", ind);
+                this.add(    'document.documentElement.setAttribute("style","");', ind+1);
+                this.add(    "mf.func.addHeadStyle('" + media +"');", ind+1);
+                this.add("}else{", ind);
+                this.add(    'buf=document.documentElement.getAttribute("style");', ind+1);
+                this.add(    "mf.func.addHeadStyle('buf+" + media +"');", ind+1);
+                this.add("}", ind);
             } else {
-                if (true === dup) {
-                    ret.push('buf=document.documentElement.getAttribute("style");');
-                    ret.push("mf.func.addHeadStyle(buf+'" + this.getMedia(prm[idx]) + "');");
-                } else {
-                    ret.push('document.documentElement.setAttribute("style","");');
-                    ret.push("mf.func.addHeadStyle('" + this.getMedia(prm[idx]) + "');");
-                }
+                this.add("if(true===isdef[1]){", ind);
+                this.add(    'document.body.setAttribute("style","");', ind+1);
+                this.add(    "mf.func.addHeadStyle('" + media +"');", ind+1);
+                this.add("}else{", ind);
+                this.add(    'buf=document.body.getAttribute("style");', ind+1);
+                this.add(    "mf.func.addHeadStyle('buf+" + media +"');", ind+1);
+                this.add("}", ind);
             }
-            
-            return ret;
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    addConts (prm, ind) {
+        try {
+            let atr = prm.attrs;
+            if ((undefined !== atr.os) && (undefined !== atr.browser)) {
+                this.add('if(("'+ atr.os +'"===mf.func.osType())&&("' + atr.browser + '"===mf.func.brsType())){', ind);
+                this.addHead(prm, ind+1);
+                this.add('}', ind); 
+            } else if (undefined !== atr.os) {
+                this.add('if("'+ atr.os +'"===mf.func.osType()){', ind);
+                this.addHead(prm, ind+1);
+                this.add('}', ind);
+            } else if (undefined !== atr.browser) {
+                this.add('if("'+ atr.browser +'"===mf.func.brsType()){', ind);
+                this.addHead(prm, ind+1);
+                this.add('}', ind);
+            } else {
+                this.addHead(prm, ind);
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -90,7 +108,7 @@ module.exports = class extends Base {
     
     toScript (prm) {
         try {
-            let def_prm = undefined;
+            let def_prm = "font-size:625%;";
             for (let pidx in prm) {
                 if ('default' === prm[pidx].tag) {
                     def_prm = prm[pidx].text;
@@ -98,30 +116,22 @@ module.exports = class extends Base {
                     break;
                 }
             }
-            this.defStyle(def_prm);
-
-            this.add("let buf=null;");
+            this.defStyle((true === util.isNumStr(def_prm)) ? "font-size:"+def_prm+"%;" : def_prm);
+            
             let css_val = '';
             for (let pidx in prm) {
-                let tgt_val = this.getTgtValue(prm, pidx);
-                
                 if ( ("mobile" === prm[pidx].tag) ||
                      ("tablet" === prm[pidx].tag)) {
                     this.add('if ("'+ prm[pidx].tag +'"===mf.func.devType()){');
-                    this.add(tgt_val[0], 2);
-                    this.add(tgt_val[1], 2);
+                    this.addConts(prm[pidx], 2);
                     this.add('}');
-                } else if ('screen' === prm[pidx].tag) {
-                    css_val += this.getMedia(prm[pidx]);
+                } else if ('all' === prm[pidx].tag) {
+                    this.addConts(prm[pidx], 1);
                 } else {
                     this.add("if(window.navigator.userAgent.indexOf('" + prm[pidx].tag + "') > 0){");
-                    this.add(tgt_val[0], 2);
-                    this.add(tgt_val[1], 2);
+                    this.addConts(prm[pidx], 2);
                     this.add('}');
                 }
-            }
-            if ('' !== css_val) {
-                this.add("mf.func.addHeadStyle('" + css_val + "')");
             }
             
             return this.m_script;

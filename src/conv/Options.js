@@ -3,10 +3,13 @@
  * @brief option script generator
  * @author simparts
  */
-const Base = require('./BaseGen.js');
-const util = require('../util.js');
+const Base   = require('./BaseGen.js');
+const Style  = require('./opt/Style.js');
+const Theme  = require('./opt/Theme.js');
+const Respsv = require('./opt/Respsv.js');
+const util   = require('../util.js');
 
-let Option = class extends Base {
+module.exports = class extends Base {
     
     constructor (opt) {
         try {
@@ -21,33 +24,21 @@ let Option = class extends Base {
     }
     
     style (prm) {
-        try {
-            if ('object' === typeof prm) {
-                return this.style("'" + prm.text + "'");
-            }
-            prm = prm.substring(1, prm.length-1);
-            let ret = "{";
-            /* delete space */
-            let nsp     = prm.split(' ');
-            let nsp_str = "";
-            for (let nsp_idx in nsp) {
-                nsp_str += nsp[nsp_idx];
-            }
-            /* set every element */
-            let sp_prm = nsp_str.split(';');
-            sp_prm.pop();
-            let sp_elm = null;
-            for (let sp_idx in sp_prm) {
-                sp_elm = sp_prm[sp_idx].split(':');
-                if (2 !== sp_elm.length) {
-                    throw new Error('invalid style');
-                }
-                ret += "'" + sp_elm[0] + "':";
-                ret += "'" + sp_elm[1] + "',";
-            }
-            ret = ret.substring(0, ret.length-1);
-            return ret + "}";
-        } catch (e) {
+        try { return new Style({ minify: true }).toScript(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    theme (prm) {
+        try { return new Theme({ minify: true }, this).toScript(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    respsv (prm) {
+        try { return new Respsv({ minify: true }, this).toScript(prm); } catch (e) {
             console.error(e.stack);
             throw e;
         }
@@ -55,57 +46,12 @@ let Option = class extends Base {
     
     option (prm) {
         try {
-            this.m_optkey = null;
             let ret = "";
             for (let pidx in prm.attrs) {
-                 ret += prm.attrs[pidx].tag + ":";
-                 ret += "new mf.Option(";
-                 ret += new Option()._optgen(prm.attrs[pidx]);
-                 ret += "),";
+                ret += prm.attrs[pidx].tag + ":";
+                ret += "new mf.Option(" + this._optgen(prm.attrs[pidx]) + "),";
             }
-             return ret.substring(0, ret.length-1);
-        } catch (e) {
-            console.error(e.stack);
-            throw e;
-        }
-    }
-    
-    theme (prm) {
-        try {
-            let ret     = "{";
-            let thm_cnt = null;
-            for (let pidx in prm.child) {
-                if (undefined === prm.child[pidx].target) {
-                    /* replace type is option */
-                    ret += prm.child[pidx].tag + ':';
-                    ret += new Option()._optgen(prm.child[pidx]);
-                } else {
-                    ret += prm.child[pidx].target + ':';
-                    delete prm.child[pidx].target;
-                    
-                    if (1 > Object.keys(prm.child[pidx]).length) {
-                        /* replace type is class */
-                        ret += prm.child[pidx].tag;
-                    } else {
-                        /* replace type is class with option */
-                        ret += '[' + prm.child[pidx].tag + ',';
-                        ret += '{' + new Option()._optgen(prm.child[pidx]) + '}]';
-                    }
-                }
-                ret += ",";
-            }
-            ret = ret.substring(0, ret.length-1);
-            return ret + "}";
-        } catch (e) {
-            console.error(e.stack);
-            throw e;
-        }
-    }
-    
-    respsv (prm) {
-        try {
-//console.log(prm);
-            return "undefined";
+            return ret.substring(0, ret.length-1);
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -114,8 +60,7 @@ let Option = class extends Base {
     
     name (prm) {
         try {
-            let ret = "";
-            this.m_optkey = 'objkey';
+            let ret = "objkey: ";
             if (true === this.gencnf().autoComment) {
                 ret += (true === util.isComment(prm)) ? prm : '"' + prm + '"';
             } else {
@@ -154,9 +99,15 @@ let Option = class extends Base {
                 ret += ']';
             } else if ('object' === typeof prm) {
                 ret += (1 < prm.child.length) ? "[" : "";
-                for (let aidx in prm.child) {
-                    ret += "new " + prm.child[aidx].tag + "(";
-                    ret += new Option()._optgen(prm.child[aidx]) + "),";
+                for (let cidx in prm.child) {
+                    ret += "new " + prm.child[cidx].tag + "(";
+                    if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
+                         (null !== prm.child[cidx].text) ) {
+                        ret += prm.child[cidx].text;
+                        ret += "),";
+                    } else {
+                        ret += this._optgen(prm.child[cidx]) + "),";
+                    }
                 }
                 ret = ret.substring(0, ret.length-1);
                 ret += (1 < prm.child.length) ? "]" : "";
@@ -184,18 +135,19 @@ let Option = class extends Base {
             }
             
             for (let aidx in cmp.attrs) {
-                this.m_optkey = aidx;
-                if ( ('function' === typeof this[aidx]) &&
-                     ('toScript' !== aidx) &&
-                     ('gencnf' !== aidx) &&
-                     ('_' !== aidx[0]) ) {
-                    let optcnt = this[aidx](cmp.attrs[aidx]);
-                    ret += (null !== this.m_optkey) ? this.m_optkey + ":" + optcnt : optcnt;
+                //this.m_optkey = aidx;
+                if ( ('name' === aidx) || ('option' === aidx) ) {
+                    ret += this[aidx](cmp.attrs[aidx]);
+                } else if ( ('function' === typeof this[aidx]) &&
+                            ('toScript' !== aidx) &&
+                            ('gencnf' !== aidx) &&
+                            ('_' !== aidx[0]) ) {
+                    ret += aidx + ":" + this[aidx](cmp.attrs[aidx]);
                 } else {
                     if ('template' === aidx) {
                         continue;
                     }
-                    ret += this.m_optkey + ':' + this._otheropt(cmp.attrs[aidx]);
+                    ret += aidx + ':' + this._otheropt(cmp.attrs[aidx]);
                 }
                 ret += ",";
             }
@@ -208,20 +160,15 @@ let Option = class extends Base {
     
     toScript (cmp) {
         try {
-            //let ret = cmp.name + ".option(" + this._optgen(cmp) + ");";
             this.add(cmp.name + ".option(" + this._optgen(cmp) + ");");
-            //let chd_opt  = "";
             for (let cidx in cmp.child) {
-                //ret += this.toScript(cmp.child[cidx]);
                 this.toScript(cmp.child[cidx]);
             }
             return this.m_script;
-            //return ret;
         } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
 }
-module.exports = Option;
 /* end of file */

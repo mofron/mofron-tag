@@ -98,19 +98,27 @@ module.exports = class extends Base {
                 ret = ret.substring(0, ret.length-1);
                 ret += ']';
             } else if ('object' === typeof prm) {
-                ret += (1 < prm.child.length) ? "[" : "";
-                for (let cidx in prm.child) {
-                    ret += "new " + prm.child[cidx].tag + "(";
-                    if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
-                         (null !== prm.child[cidx].text) ) {
-                        ret += prm.child[cidx].text;
-                        ret += "),";
+                if (0 === prm.child.length) {
+                    if (true === this.gencnf().autoComment) {
+                        ret += (true === util.isComment(prm.text)) ? prm.text : '"' + prm.text + '"';
                     } else {
-                        ret += this._optgen(prm.child[cidx]) + "),";
+                        ret += prm.text;
                     }
+                } else {
+                    ret += (1 < prm.child.length) ? "[" : "";
+                    for (let cidx in prm.child) {
+                        ret += "new " + prm.child[cidx].tag + "(";
+                        if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
+                             (null !== prm.child[cidx].text) ) {
+                            ret += prm.child[cidx].text;
+                            ret += "),";
+                        } else {
+                            ret += this._optgen(prm.child[cidx]) + "),";
+                        }
+                    }
+                    ret = ret.substring(0, ret.length-1);
+                    ret += (1 < prm.child.length) ? "]" : "";
                 }
-                ret = ret.substring(0, ret.length-1);
-                ret += (1 < prm.child.length) ? "]" : "";
             } else {
                 throw new Error('unknown attr:');
             }

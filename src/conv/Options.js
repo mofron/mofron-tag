@@ -7,6 +7,7 @@ const Base   = require('./BaseGen.js');
 const Style  = require('./opt/Style.js');
 const Theme  = require('./opt/Theme.js');
 const Respsv = require('./opt/Respsv.js');
+const Color  = require('./opt/Color.js');
 const util   = require('../util.js');
 
 module.exports = class extends Base {
@@ -39,6 +40,42 @@ module.exports = class extends Base {
     
     respsv (prm) {
         try { return new Respsv({ minify: true }, this).toScript(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    mainColor (prm) {
+        try {
+            return new Color({ 
+                minify: true,
+                autoopt: !this.gencnf().theme
+            }).toScript(prm);
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    baseColor (prm) {
+        try {
+            return new Color({
+                minify: true,
+                autoopt: !this.gencnf().theme
+            }).toScript(prm);
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    accentColor (prm) {
+        try {
+            return new Color({
+                minify: true,
+                autoopt: !this.gencnf().theme
+            }).toScript(prm);
+        } catch (e) {
             console.error(e.stack);
             throw e;
         }
@@ -143,7 +180,6 @@ module.exports = class extends Base {
             }
             
             for (let aidx in cmp.attrs) {
-                //this.m_optkey = aidx;
                 if ( ('name' === aidx) || ('option' === aidx) ) {
                     ret += this[aidx](cmp.attrs[aidx]);
                 } else if ( ('function' === typeof this[aidx]) &&

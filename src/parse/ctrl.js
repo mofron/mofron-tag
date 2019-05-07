@@ -53,6 +53,7 @@ module.exports = (txt) => {
 
         let ret = {
             require: [],
+            script: [],
             responsive: [],
             template: {},
             component: []
@@ -74,8 +75,10 @@ module.exports = (txt) => {
                 tmp[prs_ret[pidx].attrs.name] = prs_ret[pidx].child;
             } else if ('responsive' === prs_ret[pidx].tag) {
                 for (let res_idx in prs_ret[pidx].child) {
-                    ret.responsive.push(prs_ret[pidx].child[res_idx]);
+                    ret[prs_ret[pidx].tag].push(prs_ret[pidx].child[res_idx]);
                 }
+            } else if ('script' === prs_ret[pidx].tag) {
+                ret[prs_ret[pidx].tag].push(prs_ret[pidx]);
             } else {
                 cmp.push(prs_ret[pidx]);
             }

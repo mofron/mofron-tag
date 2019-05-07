@@ -27,7 +27,9 @@ module.exports = class extends Base {
                 if (undefined === prm.child[pidx].target) {
                     /* replace type is option */
                     buf += prm.child[pidx].tag + ':';
+                    this.gencnf().optgen.gencnf().theme = true;
                     buf += this.gencnf().optgen._optgen(prm.child[pidx]);
+                    this.gencnf().optgen.gencnf().theme = false;
                 } else {
                     buf += prm.child[pidx].target + ':';
                     delete prm.child[pidx].target;
@@ -38,7 +40,9 @@ module.exports = class extends Base {
                     } else {
                         /* replace type is class with option */
                         buf += '[' + prm.child[pidx].tag + ',';
+                        this.gencnf().optgen.gencnf().theme = true;
                         buf += '{' + this.gencnf().optgen._optgen(prm.child[pidx]) + '}]';
+                        this.gencnf().optgen.gencnf().theme = false;
                     }
                 }
                 buf += ",";

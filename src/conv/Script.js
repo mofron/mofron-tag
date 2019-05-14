@@ -10,9 +10,7 @@ module.exports = class extends Base {
     
     toScript (scp) {
         try {
-            for (let sidx in scp) {
-                this.add(scp[sidx].text);
-            }
+            this.add(scp.text);
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

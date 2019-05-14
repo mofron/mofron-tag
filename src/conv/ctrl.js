@@ -22,15 +22,37 @@ module.exports = (prs) => {
         let res_gen = new Res();
         ret += res_gen.toScript(prs.responsive);
         
+        let scp_gen = null;
+        /* init script */
+        for (let scp_idx in prs.script) {
+            if ("init" === prs.script[scp_idx].attrs.run) {
+                scp_gen = new Scrpt();
+                ret += scp_gen.toScript(prs.script[scp_idx]);
+            }
+        }
+        
         /* component area */
         let cmp_gen = new Comp();
         ret += cmp_gen.toScript(prs.component, prs.template);
         ret += "    app.root.child(set_comp)\n";
+        
+        /* hurry script */
+        for (let scp_idx2 in prs.script) {
+            if ("hurry" === prs.script[scp_idx2].attrs.run) {
+                scp_gen = new Scrpt();
+                ret += scp_gen.toScript(prs.script[scp_idx3]);
+            }
+        }
         ret += "    app.root.visible(true);\n\n";
         
-        /* script area */
-        let scp_gen = new Scrpt();
-        ret += scp_gen.toScript(prs.script);
+        /* defer script */
+        for (let scp_idx3 in prs.script) {
+            if ( (undefined === prs.script[scp_idx3].attrs.run) ||
+                 ("defer" === prs.script[scp_idx3].attrs.run)) {
+                scp_gen = new Scrpt();
+                ret += scp_gen.toScript(prs.script[scp_idx3]);
+            }
+        }
         
         ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
         return ret;

@@ -22,9 +22,6 @@ module.exports = class extends Base {
     
     toScript (val) {
         try {
-//console.log('dec val:' + val);
-            //let ret = "";
-            //ret += (false === this.gencnf().minify) ? "    " : "";
             let buf  = "let ";
             let name = "";
             if ('' !== this.gencnf().name) {
@@ -40,9 +37,8 @@ module.exports = class extends Base {
                 throw new Error('null value');
             }
             buf += "=" + val;
-//console.log('dec buf:' + buf);
             this.add(buf);
-//console.log('dec ret:' + this.m_script);
+            
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

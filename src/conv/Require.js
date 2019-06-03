@@ -12,6 +12,7 @@ module.exports = class extends Base {
         try {
             this.add("const mf=require('mofron');",0);
             for (let pidx in prm) {
+                
                 let line = "const " + prm[pidx].text + "=require(";
                 if (true === util.isComment(prm[pidx].attrs.module)) {
                     line += prm[pidx].attrs.module + ");";

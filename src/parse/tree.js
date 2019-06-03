@@ -17,6 +17,7 @@ let tree = (prm) => {
              }
              let buf    = {};
              buf.tag    = prm[pidx].tagName;
+             buf.src    = false;
              buf.attrs  = attrs.text(prm[pidx].rawAttrs);
              buf.child  = [];
              
@@ -27,10 +28,17 @@ let tree = (prm) => {
                  if (1 === txt.length) {
                      buf.text = ('' === txt[0]) ? null : txt[0];
                  } else {
-                     txt = txt[1].split(/^\s+/g);
-                     if (1 < txt.length) {
-                         buf.text = ('' === txt[1]) ? null : txt[1];
+                     let set_txt = "";
+                     for (let tidx in txt) {
+                         let sp_txt = txt[tidx].split(/^\s+/g);
+                         for (let sp_idx in sp_txt) {
+                             set_txt += sp_txt[sp_idx];
+                         }
                      }
+                     if ("" !== set_txt) {
+                         buf.text = set_txt;
+                     }
+                     
                  }
              }
              

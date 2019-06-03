@@ -39,11 +39,27 @@ let Child = class extends Base {
     
     toScript (cmp) {
         try {
+            if (true === cmp.src) {
+                return this.m_script;
+            }
+            
             let buf  = "";
             let name = [];
             for (let cidx in cmp.child) {
-                name.push(cmp.child[cidx].name);
-                buf += new Child({ minify: this.gencnf().minify }).toScript(cmp.child[cidx]);
+                if (false === cmp.child[cidx].src) {
+                    name.push(cmp.child[cidx].name);
+                } else {
+                    for (let sidx in this.gencnf().srctag[cmp.child[cidx].tag]) {
+                        name.push(
+                            this.gencnf().srctag[cmp.child[cidx].tag][sidx].name
+                        );
+                    }
+                }
+                
+                buf += new Child({
+                    minify: this.gencnf().minify,
+                    srctag: this.gencnf().srctag
+                }).toScript(cmp.child[cidx]);
             }
             /* add child name */
             let add_scp = '';
@@ -56,8 +72,12 @@ let Child = class extends Base {
             }
             
             if (undefined !== cmp.attrs.template) {
-                for (let tidx in cmp.attrs.template) {
-                    this.add(cmp.name + ".child(" + this.template(cmp.attrs.template[tidx]) + ");");
+                if (false === Array.isArray(cmp.attrs.template)) {
+                    this.add(cmp.name + ".child(" + this.template(cmp.attrs.template) + ");");
+                } else {
+                    for (let tidx in cmp.attrs.template) {
+                        this.add(cmp.name + ".child(" + this.template(cmp.attrs.template[tidx]) + ");");
+                    }
                 }
             }
             /* add child script of cmp.child */

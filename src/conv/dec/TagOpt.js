@@ -114,6 +114,18 @@ module.exports = class extends Options {
 //        }
 //    }
     
+    _otheropt (prm) {
+        try {
+           if ( ('string' === typeof prm) && ('@' === prm[0])) {
+               prm = get_tag(prm);
+           }
+           return super._otheropt(prm); 
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
     _optgen (cmp) {
         try {
             if (null !== cmp.text) {

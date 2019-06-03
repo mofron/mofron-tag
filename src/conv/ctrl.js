@@ -18,6 +18,7 @@ module.exports = (prs) => {
         ret += req_gen.toScript(prs.require);
         
         ret += "try {\n";
+        
         /* responsiv area */
         let res_gen = new Res();
         ret += res_gen.toScript(prs.responsive);
@@ -32,7 +33,7 @@ module.exports = (prs) => {
         }
         
         /* component area */
-        let cmp_gen = new Comp();
+        let cmp_gen = new Comp({ parse: prs });
         ret += cmp_gen.toScript(prs.component, prs.template);
         ret += "    app.root.child(set_comp)\n";
         

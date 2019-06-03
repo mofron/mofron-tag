@@ -74,7 +74,7 @@ try {
                 }
                 return ret;
             } catch (e) {
-                console.log(e.stack);
+                console.error(e.stack);
                 throw e;
             }
         },
@@ -91,7 +91,7 @@ try {
                         }
                         return false;
                     } catch (e) {
-                        console.log(e.stack);
+                        console.error(e.stack);
                         throw e;
                     }
                 }
@@ -120,7 +120,7 @@ try {
                 }
                 return ret;
             } catch (e) {
-                console.log(e.stack);
+                console.error(e.stack);
                 throw e;
             }
         },
@@ -137,7 +137,7 @@ try {
                 prm.child = [];
                 return { name: prm.tag, value: prm };
             } catch (e) {
-                console.log(e.stack);
+                console.error(e.stack);
                 throw e;
             }
         }

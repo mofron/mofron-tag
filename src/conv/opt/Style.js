@@ -16,7 +16,7 @@ module.exports = class extends Base {
                 throw new Error('invalid parameter');
             }
             prm = prm.substring(1, prm.length-1);
-            this.add("{");
+            this.add("[{");
             /* delete space */
             let nsp     = prm.split(' ');
             let nsp_str = "";
@@ -36,7 +36,7 @@ module.exports = class extends Base {
                 buf += "'" + sp_elm[0] + "':";
                 buf += "'" + sp_elm[1] + "',";
             }
-            this.add(buf.substring(0, buf.length-1) + '}');
+            this.add(buf.substring(0, buf.length-1) + '},{locked:true,forced:true}]');
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

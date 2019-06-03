@@ -17,28 +17,36 @@ let Component = class extends Declare {
         }
     }
     
-    toScript (prm) {
+    toScript (prm, chd) {
         try {
             /* set name */
             if ((undefined !== prm.attrs.name) && ('@' !== prm.attrs.name[0])) {
                 this.gencnf().name = prm.attrs.name;
                 prm.name = prm.attrs.name;
-            } else {
+            } else if (false === prm.src) {
                 prm.name = this.gencnf().bsnm + (this.gencnf().count+1);
+            } else {
+                this.gencnf().name = prm.tag;
+                prm.name = prm.tag;
             }
-            /* set value */
-            let val = "new ";
-            val += ('Component' === prm.tag) ? 'mf.' : '';
-            val += prm.tag + "();";
-            let ret = super.toScript(val);
             
-            /* genelate child component */
-            if (0 !== prm.child.length) {
-                for (let ch_idx in prm.child) {
-                    this.toScript(prm.child[ch_idx]);
-                }
-            }
+            if (false === prm.src) {
+                /* set value */
+                let val = "new ";
+                val += ('Component' === prm.tag) ? 'mf.' : '';
+                val += prm.tag + "();";
+                super.toScript(val);
 
+                /* genelate child component */
+                if (0 !== prm.child.length) {
+                    for (let ch_idx in prm.child) {
+                        this.toScript(prm.child[ch_idx], true);
+                    }
+                }
+            } else {
+                this.add(this.gencnf().cmpgen.srcTag(prm.child.component, prm.tag), 0);
+            }
+            
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

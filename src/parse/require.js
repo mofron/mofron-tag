@@ -17,7 +17,11 @@ module.exports = {
                         tag: tag.text,
                         mod: tag.attrs[aidx]
                     });
-                    continue;
+                } else if ('src' === aidx) {
+                    list.push({
+                        tag: tag.text,
+                        src: tag.attrs[aidx]
+                    });
                 }
             }
         } catch (e) {

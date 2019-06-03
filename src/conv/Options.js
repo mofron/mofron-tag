@@ -115,7 +115,6 @@ module.exports = class extends Base {
             let ret = "";
             if ('string' === typeof prm) {
                 if ( (false === util.isComment(prm)) &&
-                     ('number' !== typeof prm) &&
                      (null !== prm.match(/\w+[(].*[)]/g)) ) {
                     ret += 'new ';
                 }
@@ -142,7 +141,16 @@ module.exports = class extends Base {
                         ret += prm.text;
                     }
                 } else {
-                    ret += (1 < prm.child.length) ? "[" : "";
+                    //ret += "";
+                    let is_array = false;
+                    if (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) {
+                        ret += "[";
+                        is_array = true;
+                    } else if (1 < prm.child.length) {
+                        ret += "[";
+                        is_array = true;
+                    }
+                    
                     for (let cidx in prm.child) {
                         ret += "new " + prm.child[cidx].tag + "(";
                         if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
@@ -150,11 +158,15 @@ module.exports = class extends Base {
                             ret += prm.child[cidx].text;
                             ret += "),";
                         } else {
-                            ret += this._optgen(prm.child[cidx]) + "),";
+                            let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
+                            ret += this._optgen(prm.child[cidx], opt_chd) + "),";
                         }
                     }
                     ret = ret.substring(0, ret.length-1);
-                    ret += (1 < prm.child.length) ? "]" : "";
+                    //ret += (1 < prm.child.length) ? "]" : "";
+                    if (true === is_array) {
+                        ret += "]";
+                    }
                 }
             } else {
                 throw new Error('unknown attr:');
@@ -166,17 +178,30 @@ module.exports = class extends Base {
         }
     }
     
-    _optgen (cmp) {
+    _optgen (cmp, ochd) {
         try {
             let ret = "{";
             if ((undefined !== cmp.text) && (null !== cmp.text)) {
                 ret += "text: ";
+                cmp.text = cmp.text.replace(/</g, "&lt;");
+                cmp.text = cmp.text.replace(/>/g, "&gt;");
+                cmp.text = cmp.text.replace(/&mfensp;/g, "&ensp;");
                 if (true === this.gencnf().autoComment) {
                     ret += (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
                 } else {
                     ret += cmp.text;
                 }
                 ret += ",";
+            }
+            
+            if (undefined !== ochd) {
+                ret += "child:[";
+                for (let oc_idx in ochd) {
+                    let oo_chd = (0 === ochd[oc_idx].child.length) ? undefined : ochd[oc_idx].child;
+                    ret += "new " + ochd[oc_idx].tag + "("+ this._optgen(ochd[oc_idx], oo_chd) +"),";
+                }
+                ret = ret.substring(0, ret.length-1);
+                ret += "],";
             }
             
             for (let aidx in cmp.attrs) {
@@ -204,6 +229,9 @@ module.exports = class extends Base {
     
     toScript (cmp) {
         try {
+            if (true === cmp.src) {
+                return this.m_script;
+            }
             this.add(cmp.name + ".option(" + this._optgen(cmp) + ");");
             for (let cidx in cmp.child) {
                 this.toScript(cmp.child[cidx]);

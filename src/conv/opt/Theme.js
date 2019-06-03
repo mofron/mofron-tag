@@ -24,24 +24,25 @@ module.exports = class extends Base {
             let buf     = "";
             let thm_cnt = null;
             for (let pidx in prm.child) {
-                if (undefined === prm.child[pidx].target) {
+                if (undefined === prm.child[pidx].attrs.replace) {
                     /* replace type is option */
                     buf += prm.child[pidx].tag + ':';
                     this.gencnf().optgen.gencnf().theme = true;
                     buf += this.gencnf().optgen._optgen(prm.child[pidx]);
                     this.gencnf().optgen.gencnf().theme = false;
                 } else {
-                    buf += prm.child[pidx].target + ':';
-                    delete prm.child[pidx].target;
+                    buf += prm.child[pidx].tag + ':';
+                    //delete prm.child[pidx].attrs.replace;
 
-                    if (1 > Object.keys(prm.child[pidx]).length) {
+                    if (1 > Object.keys(prm.child[pidx].attrs).length) {
                         /* replace type is class */
-                        buf += prm.child[pidx].tag;
+                        buf += prm.child[pidx].attrs.replace;
                     } else {
                         /* replace type is class with option */
-                        buf += '[' + prm.child[pidx].tag + ',';
+                        buf += '[' + prm.child[pidx].attrs.replace + ',';
+                        delete prm.child[pidx].attrs.replace;
                         this.gencnf().optgen.gencnf().theme = true;
-                        buf += '{' + this.gencnf().optgen._optgen(prm.child[pidx]) + '}]';
+                        buf += this.gencnf().optgen._optgen(prm.child[pidx]) + ']';
                         this.gencnf().optgen.gencnf().theme = false;
                     }
                 }

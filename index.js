@@ -33,7 +33,20 @@ fs.readFile(
     'utf8',
     function (err, tag) {
         try {
-            write(conv(parse(tag)));
+            let prs_tag = parse.main(tag);
+            setTimeout(
+                () => {
+                    try {
+                        parse.sort(prs_tag);
+                        //console.log(conv(prs_tag));
+                        write(conv(prs_tag));
+                    } catch (e) {
+                        console.error(e.stack);
+                        throw e;
+                    }
+                },
+                1000
+            );
         } catch (e) {
             console.error(e.stack);
             throw e;

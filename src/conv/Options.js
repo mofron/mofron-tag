@@ -124,12 +124,21 @@ module.exports = class extends Base {
             } else if (true === Array.isArray(prm)) {
                 ret += '[';
                 for (let vidx in prm) {
-                    if ( (false === util.isComment(prm[vidx])) &&
-                         ('number' !== typeof prm[vidx]) &&
-                         (null !== prm[vidx].match(/\w+[(].*[)]/g)) ) {
-                        ret += 'new ';
+                    if ("string" === typeof prm[vidx]) {
+                        if ( (false === util.isComment(prm[vidx])) &&
+                             ('number' !== typeof prm[vidx]) &&
+                             (null !== prm[vidx].match(/\w+[(].*[)]/g)) ) {
+                            ret += 'new ';
+                        }
+                        ret += prm[vidx];
+                    } else {
+                        if ( (0 === prm[vidx].child.length) && (null !== prm[vidx].text) ) {
+                            ret += (false === util.isComment(prm[vidx].text)) ? '"' + prm[vidx].text + '"' : prm[vidx].text;
+                        } else {
+                            ret += this._otheropt(prm[vidx]);
+                        }
                     }
-                    ret += prm[vidx]+',' ;
+                    ret += ',' ;
                 }
                 ret = ret.substring(0, ret.length-1);
                 ret += ']';
@@ -182,16 +191,26 @@ module.exports = class extends Base {
         try {
             let ret = "{";
             if ((undefined !== cmp.text) && (null !== cmp.text)) {
-                ret += "text: ";
-                cmp.text = cmp.text.replace(/</g, "&lt;");
-                cmp.text = cmp.text.replace(/>/g, "&gt;");
-                cmp.text = cmp.text.replace(/&mfensp;/g, "&ensp;");
-                if (true === this.gencnf().autoComment) {
-                    ret += (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
+                ret += "prmOpt: ";
+                let simprm = "";
+                if ('@' === cmp.text[0]) {
+                    simprm = cmp.text.substring(1);
                 } else {
-                    ret += cmp.text;
+                    simprm = (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
                 }
-                ret += ",";
+                ret += simprm + ",";
+                
+                // += "(" + simprm + ");";
+                
+                //cmp.text = cmp.text.replace(/</g, "&lt;");
+                //cmp.text = cmp.text.replace(/>/g, "&gt;");
+                //cmp.text = cmp.text.replace(/&mfensp;/g, "&ensp;");
+                //if (true === this.gencnf().autoComment) {
+                //    ret += (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
+                //} else {
+                //    ret += cmp.text;
+                //}
+                //ret += ",";
             }
             
             if (undefined !== ochd) {

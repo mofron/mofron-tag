@@ -4,6 +4,7 @@
  * @author simparts
  */
 const Declare = require('./Declare.js');
+const util   = require('../../util.js');
 
 let Component = class extends Declare {
     
@@ -34,7 +35,18 @@ let Component = class extends Declare {
                 /* set value */
                 let val = "new ";
                 val += ('Component' === prm.tag) ? 'mf.' : '';
-                val += prm.tag + "();";
+                val += prm.tag;
+                //if ((undefined !== prm.text) && (null !== prm.text)) {
+                //    let simprm = "";
+                //    if ('@' === prm.text[0]) {
+                //        simprm = prm.text.substring(1);
+                //    } else {
+                //        simprm = (true === util.isComment(prm.text)) ? prm.text : '"' + prm.text +'"';
+                //    }
+                //    val += "(" + simprm + ");";
+                //} else {
+                    val += "();";
+                //}
                 super.toScript(val);
 
                 /* genelate child component */

@@ -81,20 +81,6 @@ module.exports = class extends Base {
         }
     }
     
-    option (prm) {
-        try {
-            let ret = "";
-            for (let pidx in prm.attrs) {
-                ret += prm.attrs[pidx].tag + ":";
-                ret += "new mf.Option(" + this._optgen(prm.attrs[pidx]) + "),";
-            }
-            return ret.substring(0, ret.length-1);
-        } catch (e) {
-            console.error(e.stack);
-            throw e;
-        }
-    }
-    
     name (prm) {
         try {
             let ret = "objkey: ";
@@ -144,41 +130,61 @@ module.exports = class extends Base {
                 ret += ']';
             } else if ('object' === typeof prm) {
                 if (0 === prm.child.length) {
-                    if (true === this.gencnf().autoComment) {
-                        ret += (true === util.isComment(prm.text)) ? prm.text : '"' + prm.text + '"';
+                    if ( (null !== prm.text) && (0 < prm.text.length) ) {
+                        if (true === this.gencnf().autoComment) {
+                            ret += (true === util.isComment(prm.text)) ? prm.text : '"' + prm.text + '"';
+                        } else {
+                            ret += prm.text;
+                        }
                     } else {
-                        ret += prm.text;
+                        //delete prm.attrs.option;
+                        ret += "new mf.Option(" + this._optgen(prm) + ")";
                     }
                 } else {
-                    //ret += "";
-                    let is_array = false;
-                    if (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) {
-                        ret += "[";
-                        is_array = true;
-                    } else if (1 < prm.child.length) {
-                        ret += "[";
-                        is_array = true;
-                    }
-                    
-                    for (let cidx in prm.child) {
-                        ret += "new " + prm.child[cidx].tag + "(";
-                        if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
-                             (null !== prm.child[cidx].text) ) {
-                            ret += prm.child[cidx].text;
-                            ret += "),";
+                    if ("string" === typeof prm.attrs.param) {
+                        ret += "new mf.Option({" + prm.attrs.param + ":";
+                        if (1 === prm.child.length) {
+                            ret += "new " + prm.child[0].tag + "(" + this._optgen(prm.child[0]) + ")";
                         } else {
-                            let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
-                            ret += this._optgen(prm.child[cidx], opt_chd) + "),";
+                            ret += "[";
+                            for (let cidx in prm.child) {
+                                ret += "new " + prm.child[cidx].tag + "(" + this._optgen(prm.child[cidx]) + "),";
+                                //console.log(prm.attrs.param + ":" + this._optgen(prm.child[0]));
+                            }
+                            ret = ret.substring(0, ret.length-1);
+                            ret += "]";
                         }
-                    }
-                    ret = ret.substring(0, ret.length-1);
-                    //ret += (1 < prm.child.length) ? "]" : "";
-                    if (true === is_array) {
-                        ret += "]";
+                        ret += "})";
+                        //ret += "new mf.Option(" + this._optgen(prm) + ")";
+                    } else {
+                        let is_array = false;
+                        if (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) {
+                            ret += "[";
+                            is_array = true;
+                        } else if (1 < prm.child.length) {
+                            ret += "[";
+                            is_array = true;
+                        }
+                        
+                        for (let cidx in prm.child) {
+                            ret += "new " + prm.child[cidx].tag + "(";
+                            if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
+                                 (null !== prm.child[cidx].text) ) {
+                                ret += prm.child[cidx].text;
+                                ret += "),";
+                            } else {
+                                let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
+                                ret += this._optgen(prm.child[cidx], opt_chd) + "),";
+                            }
+                        }
+                        ret = ret.substring(0, ret.length-1);
+                        if (true === is_array) {
+                            ret += "]";
+                        }
                     }
                 }
             } else {
-                throw new Error('unknown attr:');
+                throw new Error('unknown attr');
             }
             return ret;
         } catch (e) {
@@ -199,18 +205,6 @@ module.exports = class extends Base {
                     simprm = (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
                 }
                 ret += simprm + ",";
-                
-                // += "(" + simprm + ");";
-                
-                //cmp.text = cmp.text.replace(/</g, "&lt;");
-                //cmp.text = cmp.text.replace(/>/g, "&gt;");
-                //cmp.text = cmp.text.replace(/&mfensp;/g, "&ensp;");
-                //if (true === this.gencnf().autoComment) {
-                //    ret += (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
-                //} else {
-                //    ret += cmp.text;
-                //}
-                //ret += ",";
             }
             
             if (undefined !== ochd) {
@@ -235,6 +229,33 @@ module.exports = class extends Base {
                     if ('template' === aidx) {
                         continue;
                     }
+                    if ( (true === Array.isArray(cmp.attrs[aidx])) &&
+                         ("object" === typeof cmp.attrs[aidx][0]) &&
+                         (0 < Object.keys(cmp.attrs[aidx][0].attrs).length) ) {
+                        let set_atr = {};
+                        for (let atr_idx in cmp.attrs[aidx]) {
+                            let chk_atr = cmp.attrs[aidx][atr_idx].attrs;
+                            for (let chk_idx in chk_atr) {
+                                if (undefined === set_atr[chk_idx]) {
+                                    set_atr[chk_idx] = [chk_atr[chk_idx]];
+                                } else {
+                                    set_atr[chk_idx].push(chk_atr[chk_idx]);
+                                }
+                            }
+                        }
+                        for (let set_idx in set_atr) {
+                            ret += (cmp.attrs[aidx][0].tag + "_" + set_idx) + ':';
+                            ret += "[";
+                            for (let val_idx in set_atr[set_idx]) {
+                                ret += set_atr[set_idx][val_idx] + ",";
+                            }
+                            ret = ret.substring(0, ret.length-1);
+                            ret += "],";
+                        }
+                        //ret = ret.substring(0, ret.length-1);
+                    }
+                    
+                    
                     ret += aidx + ':' + this._otheropt(cmp.attrs[aidx]);
                 }
                 ret += ",";

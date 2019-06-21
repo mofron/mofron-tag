@@ -64,12 +64,20 @@ try {
                         for (let vidx in ret[ridx2]) {
                             if (true === util.isNumStr(ret[ridx2][vidx])) {
                                 ret[ridx2][vidx] = parseInt(ret[ridx2][vidx]);
+                            } else if ("true" === ret[ridx2][vidx]) {
+                                ret[ridx2][vidx] = true;
+                            } else if ("false" === ret[ridx2][vidx]) {
+                                ret[ridx2][vidx] = false;
                             }
                         }
                     } else {
                         if (true === util.isNumStr(ret[ridx2])) {
                             ret[ridx2] = parseInt(ret[ridx2]);
-                        }
+                        } else if ("true" === ret[ridx2]) {
+                            ret[ridx2] = true;
+                        } else if ("false" === ret[ridx2]) {
+                            ret[ridx2] = false;
+                        } 
                     }
                 }
                 return ret;

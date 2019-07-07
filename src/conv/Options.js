@@ -108,7 +108,6 @@ module.exports = class extends Base {
             } else if ( ("number" === typeof prm) || ("boolean" === typeof prm) ) {
                 ret += prm;
             } else if (true === Array.isArray(prm)) {
-console.log(prm);
                 ret += '[';
                 for (let vidx in prm) {
                     if ("string" === typeof prm[vidx]) {

@@ -105,9 +105,10 @@ module.exports = class extends Base {
                     ret += 'new ';
                 }
                 ret += prm;
-            } else if ('number' === typeof prm) {
+            } else if ( ("number" === typeof prm) || ("boolean" === typeof prm) ) {
                 ret += prm;
             } else if (true === Array.isArray(prm)) {
+console.log(prm);
                 ret += '[';
                 for (let vidx in prm) {
                     if ("string" === typeof prm[vidx]) {
@@ -117,12 +118,14 @@ module.exports = class extends Base {
                             ret += 'new ';
                         }
                         ret += prm[vidx];
-                    } else {
+                    } else if ("object" === typeof prm[vidx]) {
                         if ( (0 === prm[vidx].child.length) && (null !== prm[vidx].text) ) {
                             ret += (false === util.isComment(prm[vidx].text)) ? '"' + prm[vidx].text + '"' : prm[vidx].text;
                         } else {
                             ret += this._otheropt(prm[vidx]);
                         }
+                    } else {
+                        ret += prm[vidx];
                     }
                     ret += ',' ;
                 }

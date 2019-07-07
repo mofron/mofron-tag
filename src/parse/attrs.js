@@ -104,6 +104,11 @@ try {
                     }
                 }
                 let ret = [];
+                /* check object */
+                if (('{' === prm[0]) && ('}' === prm[prm.length-1])) {
+                    return prm;
+                }
+                /* check array */
                 let sp_prm = prm.split(',');
                 if (1 === sp_prm.length) {
                     return prm;

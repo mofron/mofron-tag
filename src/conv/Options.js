@@ -25,12 +25,18 @@ let textParam = (txt) => {
         } else {
             ret += "[";
             for (let sp_idx in sp_txt) {
-               ret += sp_txt[sp_idx] + ',';
+               if ('@' === sp_txt[sp_idx][0]) {
+                   ret += sp_txt[sp_idx].substring(1);
+               } else if ( (true === util.isComment(sp_txt[sp_idx])) || (true === util.isNumStr(sp_txt[sp_idx])) ) {
+                   ret += sp_txt[sp_idx];
+               } else {
+                   ret += '"' + sp_txt[sp_idx] + '"';
+               }
+               ret += ',';
             }
             ret = ret.substring(0, ret.length-1);
             ret += "]";
         }
-        //ret += ',';
         
         return ret;
     } catch (e) {

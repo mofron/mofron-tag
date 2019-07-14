@@ -10,6 +10,35 @@ const Respsv = require('./opt/Respsv.js');
 const Color  = require('./opt/Color.js');
 const util   = require('../util.js');
 
+let textParam = (txt) => {
+    try {
+        let ret = '';
+        let sp_txt = txt.split(',');
+        if (1 === sp_txt.length) {
+            if ('@' === txt[0]) {
+                ret += txt.substring(1);
+            } else if ( (true === util.isComment(txt)) || (true === util.isNumStr(txt)) ) {
+                ret += txt;
+            } else {
+                ret += '"' + txt + '"';
+            }
+        } else {
+            ret += "[";
+            for (let sp_idx in sp_txt) {
+               ret += sp_txt[sp_idx] + ',';
+            }
+            ret = ret.substring(0, ret.length-1);
+            ret += "]";
+        }
+        //ret += ',';
+        
+        return ret;
+    } catch (e) {
+        console.error(e.stack);
+        throw e;
+    }
+}
+
 module.exports = class extends Base {
     
     constructor (opt) {
@@ -119,7 +148,7 @@ module.exports = class extends Base {
                         ret += prm[vidx];
                     } else if ("object" === typeof prm[vidx]) {
                         if ( (0 === prm[vidx].child.length) && (null !== prm[vidx].text) ) {
-                            ret += (false === util.isComment(prm[vidx].text)) ? '"' + prm[vidx].text + '"' : prm[vidx].text;
+                            ret += textParam(prm[vidx].text);
                         } else {
                             ret += this._otheropt(prm[vidx]);
                         }
@@ -133,11 +162,7 @@ module.exports = class extends Base {
             } else if ('object' === typeof prm) {
                 if (0 === prm.child.length) {
                     if ( (null !== prm.text) && (0 < prm.text.length) ) {
-                        if (true === this.gencnf().autoComment) {
-                            ret += (true === util.isComment(prm.text)) ? prm.text : '"' + prm.text + '"';
-                        } else {
-                            ret += prm.text;
-                        }
+                        ret += textParam(prm.text);
                     } else {
                         //delete prm.attrs.option;
                         ret += "new mf.Option(" + this._optgen(prm) + ")";
@@ -151,13 +176,11 @@ module.exports = class extends Base {
                             ret += "[";
                             for (let cidx in prm.child) {
                                 ret += "new " + prm.child[cidx].tag + "(" + this._optgen(prm.child[cidx]) + "),";
-                                //console.log(prm.attrs.param + ":" + this._optgen(prm.child[0]));
                             }
                             ret = ret.substring(0, ret.length-1);
                             ret += "]";
                         }
                         ret += "})";
-                        //ret += "new mf.Option(" + this._optgen(prm) + ")";
                     } else {
                         let is_array = false;
                         if (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) {
@@ -172,7 +195,7 @@ module.exports = class extends Base {
                             ret += "new " + prm.child[cidx].tag + "(";
                             if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
                                  (null !== prm.child[cidx].text) ) {
-                                ret += prm.child[cidx].text;
+                                ret += textParam(prm.child[cidx].text);
                                 ret += "),";
                             } else {
                                 let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
@@ -199,14 +222,7 @@ module.exports = class extends Base {
         try {
             let ret = "{";
             if ((undefined !== cmp.text) && (null !== cmp.text)) {
-                ret += "prmOpt: ";
-                let simprm = "";
-                if ('@' === cmp.text[0]) {
-                    simprm = cmp.text.substring(1);
-                } else {
-                    simprm = (true === util.isComment(cmp.text)) ? cmp.text : '"' + cmp.text + '"';
-                }
-                ret += simprm + ",";
+                ret += "prmOpt: " + textParam(cmp.text) + ',';
             }
             
             if (undefined !== ochd) {

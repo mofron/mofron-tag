@@ -10,41 +10,6 @@ const Respsv = require('./opt/Respsv.js');
 const Color  = require('./opt/Color.js');
 const util   = require('../util.js');
 
-let textParam = (txt) => {
-    try {
-        let ret = '';
-        let sp_txt = txt.split(',');
-        if (1 === sp_txt.length) {
-            if ('@' === txt[0]) {
-                ret += txt.substring(1);
-            } else if ( (true === util.isComment(txt)) || (true === util.isNumStr(txt)) ) {
-                ret += txt;
-            } else {
-                ret += '"' + txt + '"';
-            }
-        } else {
-            ret += "[";
-            for (let sp_idx in sp_txt) {
-               if ('@' === sp_txt[sp_idx][0]) {
-                   ret += sp_txt[sp_idx].substring(1);
-               } else if ( (true === util.isComment(sp_txt[sp_idx])) || (true === util.isNumStr(sp_txt[sp_idx])) ) {
-                   ret += sp_txt[sp_idx];
-               } else {
-                   ret += '"' + sp_txt[sp_idx] + '"';
-               }
-               ret += ',';
-            }
-            ret = ret.substring(0, ret.length-1);
-            ret += "]";
-        }
-        
-        return ret;
-    } catch (e) {
-        console.error(e.stack);
-        throw e;
-    }
-}
-
 module.exports = class extends Base {
     
     constructor (opt) {
@@ -80,37 +45,31 @@ module.exports = class extends Base {
         }
     }
     
-    mainColor (prm) {
+    color (prm) {
         try {
-            return new Color({ 
-                minify: true,
-                autoopt: !this.gencnf().theme
-            }).toScript(prm);
+            return new Color({ minify: true, autoopt: !this.gencnf().theme }).toScript(prm);
         } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    mainColor (prm) {
+        try { return this.color(prm); } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
     
     baseColor (prm) {
-        try {
-            return new Color({
-                minify: true,
-                autoopt: !this.gencnf().theme
-            }).toScript(prm);
-        } catch (e) {
+        try { return this.color(prm); } catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
     
     accentColor (prm) {
-        try {
-            return new Color({
-                minify: true,
-                autoopt: !this.gencnf().theme
-            }).toScript(prm);
-        } catch (e) {
+        try { return this.color(prm); } catch (e) {
             console.error(e.stack);
             throw e;
         }
@@ -134,43 +93,17 @@ module.exports = class extends Base {
     _otheropt (prm) {
         try {
             let ret = "";
-            if ('string' === typeof prm) {
-                if ( (false === util.isComment(prm)) &&
-                     (null !== prm.match(/\w+[(].*[)]/g)) ) {
-                    ret += 'new ';
-                }
-                ret += prm;
-            } else if ( ("number" === typeof prm) || ("boolean" === typeof prm) ) {
-                ret += prm;
-            } else if (true === Array.isArray(prm)) {
+            if (true === Array.isArray(prm)) {
                 ret += '[';
                 for (let vidx in prm) {
-                    if ("string" === typeof prm[vidx]) {
-                        if ( (false === util.isComment(prm[vidx])) &&
-                             ('number' !== typeof prm[vidx]) &&
-                             (null !== prm[vidx].match(/\w+[(].*[)]/g)) ) {
-                            ret += 'new ';
-                        }
-                        ret += prm[vidx];
-                    } else if ("object" === typeof prm[vidx]) {
-                        if ( (0 === prm[vidx].child.length) && (null !== prm[vidx].text) ) {
-                            ret += textParam(prm[vidx].text);
-                        } else {
-                            ret += this._otheropt(prm[vidx]);
-                        }
-                    } else {
-                        ret += prm[vidx];
-                    }
-                    ret += ',' ;
+                    ret += this._otheropt(prm[vidx]) + ',';
                 }
-                ret = ret.substring(0, ret.length-1);
-                ret += ']';
+                ret = ret.substring(0, ret.length-1) + ']';
             } else if ('object' === typeof prm) {
                 if (0 === prm.child.length) {
                     if ( (null !== prm.text) && (0 < prm.text.length) ) {
-                        ret += textParam(prm.text);
+                        ret += util.getParam(prm.text);
                     } else {
-                        //delete prm.attrs.option;
                         ret += "new mf.Option(" + this._optgen(prm) + ")";
                     }
                 } else {
@@ -189,24 +122,16 @@ module.exports = class extends Base {
                         ret += "})";
                     } else {
                         let is_array = false;
-                        if (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) {
-                            ret += "[";
-                            is_array = true;
-                        } else if (1 < prm.child.length) {
+                        if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) ||
+                             (1 < prm.child.length) ) {
                             ret += "[";
                             is_array = true;
                         }
                         
                         for (let cidx in prm.child) {
                             ret += "new " + prm.child[cidx].tag + "(";
-                            if ( (('layout' === prm.tag) || ('event' === prm.tag) || ('effect' === prm.tag)) &&
-                                 (null !== prm.child[cidx].text) ) {
-                                ret += textParam(prm.child[cidx].text);
-                                ret += "),";
-                            } else {
-                                let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
-                                ret += this._optgen(prm.child[cidx], opt_chd) + "),";
-                            }
+                            let opt_chd = (0 === prm.child[cidx].child.length) ? undefined : prm.child[cidx].child;
+                            ret += this._optgen(prm.child[cidx], opt_chd) + "),";
                         }
                         ret = ret.substring(0, ret.length-1);
                         if (true === is_array) {
@@ -215,7 +140,7 @@ module.exports = class extends Base {
                     }
                 }
             } else {
-                throw new Error('unknown attr');
+                ret += util.getParam(prm);
             }
             return ret;
         } catch (e) {
@@ -228,7 +153,7 @@ module.exports = class extends Base {
         try {
             let ret = "{";
             if ((undefined !== cmp.text) && (null !== cmp.text)) {
-                ret += "prmOpt: " + textParam(cmp.text) + ',';
+                ret += "prmOpt: " + util.getParam(cmp.text) + ',';
             }
             
             if (undefined !== ochd) {
@@ -276,10 +201,7 @@ module.exports = class extends Base {
                             ret = ret.substring(0, ret.length-1);
                             ret += "],";
                         }
-                        //ret = ret.substring(0, ret.length-1);
                     }
-                    
-                    
                     ret += aidx + ':' + this._otheropt(cmp.attrs[aidx]);
                 }
                 ret += ",";

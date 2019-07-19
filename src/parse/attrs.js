@@ -57,7 +57,6 @@ try {
                 }
                 
                 for (let ridx2 in ret) {
-                    
                     ret[ridx2] = thisobj.array(ret[ridx2]);
                     
                     if (true === Array.isArray(ret[ridx2])) {

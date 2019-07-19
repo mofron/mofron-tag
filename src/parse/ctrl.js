@@ -117,9 +117,7 @@ let main = (txt) => {
                      ("div" !== prs_ret[pidx].tag) &&
                      ("Component" !== prs_ret[pidx].tag) ) {
                     throw new Error("unknown component:" + prs_ret[pidx].tag);
-                }// else if ("div" === prs_ret[pidx].tag) {
-                 //   prs_ret[pidx].tag = "Component";
-                //}
+                }
                 ret.component.push(prs_ret[pidx]);
             }
         }

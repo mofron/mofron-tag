@@ -22,6 +22,8 @@ module.exports = class extends Base {
                         ret += "]";
                     } else if ('string' === typeof p) {
                         ret += p;
+                    } else if (('object' === typeof p) && (undefined !== p.text)) {
+                        ret += util.getParam(p.text);
                     }
                     return ret;
                 } catch (e) {

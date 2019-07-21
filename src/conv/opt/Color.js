@@ -21,7 +21,7 @@ module.exports = class extends Base {
                         ret = ret.substring(0, ret.length-1);
                         ret += "]";
                     } else if ('string' === typeof p) {
-                        ret += p;
+                        ret += util.getParam(p);
                     } else if (('object' === typeof p) && (undefined !== p.text)) {
                         ret += util.getParam(p.text);
                     }

@@ -20,31 +20,27 @@ module.exports = class extends Base {
     
     toScript (prm) {
         try {
+            let buf = "";
             this.add("{");
-            let buf     = "";
-            let thm_cnt = null;
-            for (let pidx in prm.child) {
-                if (undefined === prm.child[pidx].attrs.replace) {
+            for (let pc_idx in prm.child) {
+                let pcv = prm.child[pc_idx]; /* prm.child value */
+                
+                buf += pcv.tag + ":";
+                if (undefined === pcv.attrs.replace) {
                     /* replace type is option */
-                    buf += prm.child[pidx].tag + ':';
                     this.gencnf().optgen.gencnf().theme = true;
-                    buf += this.gencnf().optgen._optgen(prm.child[pidx]);
+                    buf += this.gencnf().optgen._optgen(pcv);
                     this.gencnf().optgen.gencnf().theme = false;
+                } else if (1 === Object.keys(pcv.attrs).length) {
+//                  /* replace type is class */
+                    buf += pcv.attrs.replace;
                 } else {
-                    buf += prm.child[pidx].tag + ':';
-                    //delete prm.child[pidx].attrs.replace;
-
-                    if (1 > Object.keys(prm.child[pidx].attrs).length) {
-                        /* replace type is class */
-                        buf += prm.child[pidx].attrs.replace;
-                    } else {
-                        /* replace type is class with option */
-                        buf += '[' + prm.child[pidx].attrs.replace + ',';
-                        delete prm.child[pidx].attrs.replace;
-                        this.gencnf().optgen.gencnf().theme = true;
-                        buf += this.gencnf().optgen._optgen(prm.child[pidx]) + ']';
-                        this.gencnf().optgen.gencnf().theme = false;
-                    }
+                    /* replace type is class with option */
+                    buf += '[' + pcv.attrs.replace + ',';
+                    delete pcv.attrs.replace;
+                    this.gencnf().optgen.gencnf().theme = true;
+                    buf += this.gencnf().optgen._optgen(pcv) + ']';
+                    this.gencnf().optgen.gencnf().theme = false;
                 }
                 buf += ",";
             }

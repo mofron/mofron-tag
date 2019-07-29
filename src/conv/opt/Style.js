@@ -15,7 +15,11 @@ module.exports = class extends Base {
             } else if ('string' !== typeof prm) {
                 throw new Error('invalid parameter');
             }
-            prm = prm.substring(1, prm.length-1);
+            /* format string */
+            if (true === util.isComment(prm)) {
+                prm = prm.substring(1, prm.length-1);
+            }
+            
             this.add("[{");
             /* delete space */
             let nsp     = prm.split(' ');

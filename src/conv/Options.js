@@ -31,6 +31,38 @@ module.exports = class extends Base {
         }
     }
     
+    size (prm) {
+        try { return "fsize:" + this._otheropt(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    width (prm) {
+        try {
+            let opt = "@{locked:true}";
+            if ("string" === typeof prm) {
+                return this._otheropt([prm,opt]);
+            } else if (true === Array.isArray(prm)) {
+                prm.push(opt);
+                return this._otheropt(prm);
+            } else {
+                return this._otheropt(prm);
+            }
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    height (prm) {
+        try { return this.width(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    
     theme (prm) {
         try { return new Theme({ minify: true }, this).toScript(prm); } catch (e) {
             console.error(e.stack);
@@ -90,6 +122,16 @@ module.exports = class extends Base {
         }
     }
     
+    param (prm) {
+        try {
+            let ret = this._optgen(prm);
+            return ret.substring(1, ret.length-1);
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
     _otheropt (prm) {
         try {
             let ret = "";
@@ -102,7 +144,17 @@ module.exports = class extends Base {
             } else if ('object' === typeof prm) {
                 if (0 === prm.child.length) {
                     if ( (null !== prm.text) && (0 < prm.text.length) ) {
-                        ret += util.getParam(prm.text);
+                        if ("string" === typeof prm.attrs.param) {
+                            ret += "new mf.Option({" + prm.attrs.param + ":";
+                            if ('function' === typeof this[prm.attrs.param]) {
+                                ret += this[prm.attrs.param](prm.text);
+                            } else {
+                                ret += prm.text;
+                            }
+                            ret += "})";
+                        } else {
+                            ret += util.getParam(prm.text);
+                        }
                     } else {
                         ret += "new mf.Option(" + this._optgen(prm) + ")";
                     }
@@ -167,7 +219,11 @@ module.exports = class extends Base {
             }
             
             for (let aidx in cmp.attrs) {
-                if ( ('name' === aidx) || ('option' === aidx) ) {
+
+                if ( ('name' === aidx)   ||
+                     ('option' === aidx) ||
+                     ('param' === aidx)  ||
+                     ('size' === aidx) ) {
                     ret += this[aidx](cmp.attrs[aidx]);
                 } else if ( ('function' === typeof this[aidx]) &&
                             ('toScript' !== aidx) &&

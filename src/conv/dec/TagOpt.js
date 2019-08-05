@@ -4,15 +4,18 @@
  * @author simparts
  */
 const Options = require('../Options.js');
+const Style   = require('../opt/Style.js');
 const util    = require('../../util.js');
 
 let get_tag = (prm) => {
     try {
         if (true === util.isComment(prm)) {
-            return ('@' === prm[1]) ? 'p.' + prm.substring(2, prm.length-1) : null;
+            return ('@' === prm[1]) ? '@p.' + prm.substring(2, prm.length-1) : null;
+        } else if ( ('@' === prm[0]) && ('@' === prm[1]) ) {
+            return '@' + prm.substring(2);
         }
         
-        return ('@' === prm[0]) ? 'p.' + prm.substring(1) : null;
+        return ('@' === prm[0]) ? '@p.' + prm.substring(1) : null;
     } catch (e) {
         console.error(e.stack);
         throw e;
@@ -30,43 +33,29 @@ module.exports = class extends Options {
             throw e;
         }
     }
-//    style (prm) {
-//        try {
-//            if ('object' === typeof prm) {
-//                return this.style("'" + prm.text + "'");
-//            }
-//            prm = prm.substring(1, prm.length-1);
-//            let ret = "style:{";
-//            /* delete space */
-//            let nsp     = prm.split(' ');
-//            let nsp_str = "";
-//            for (let nsp_idx in nsp) {
-//                nsp_str += nsp[nsp_idx];
-//            }
-//            /* set every element */
-//            let sp_prm = nsp_str.split(';');
-//            sp_prm.pop();
-//            let sp_elm = null;
-//            for (let sp_idx in sp_prm) {
-//                sp_elm = sp_prm[sp_idx].split(':');
-//                if (2 !== sp_elm.length) {
-//                    throw new Error('invalid style');
-//                }
-//                ret += "'" + sp_elm[0] + "':";
-//                ret += "'" + sp_elm[1] + "',";
-//            }
-//            ret = ret.substring(0, ret.length-1);
-//            return ret + "}";
-//        } catch (e) {
-//            console.error(e.stack);
-//            throw e;
-//        }
-//    }
+    
+    width (prm) {
+        try { return this._otheropt(prm); } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
+    style (prm) {
+        try {
+            return new Style({
+                minify: true, optflg: false
+            }).toScript(prm);
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
     
     name (prm) {
         try {
             let tag = get_tag(prm);
-            return super.name((null !== tag) ? tag : prm);
+            return super.name((null !== tag) ? tag.substring(1) : prm);
         } catch (e) {
             console.error(e.stack);
             throw e;

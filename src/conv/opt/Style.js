@@ -8,6 +8,18 @@ const util = require('../../util.js');
 
 module.exports = class extends Base {
     
+    constructor (opt) {
+        try {
+            super(opt);
+            if (undefined === this.gencnf().optflg) {
+                this.gencnf().optflg = true;
+            }
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+    
     toScript (prm) {
         try {
             if ('object' === typeof prm) {
@@ -20,7 +32,10 @@ module.exports = class extends Base {
                 prm = prm.substring(1, prm.length-1);
             }
             
-            this.add("[{");
+            if (true === this.gencnf().optflg) {
+                 this.add("[");
+            }
+            this.add("{");
             /* delete space */
             let nsp     = prm.split(' ');
             let nsp_str = "";
@@ -40,7 +55,11 @@ module.exports = class extends Base {
                 buf += "'" + sp_elm[0] + "':";
                 buf += "'" + sp_elm[1] + "',";
             }
-            this.add(buf.substring(0, buf.length-1) + '},{locked:true,forced:true}]');
+            
+            this.add(buf.substring(0, buf.length-1) + '}');
+            if (true === this.gencnf().optflg) {
+                 this.add(',{locked:true,forced:true}]');
+            }
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

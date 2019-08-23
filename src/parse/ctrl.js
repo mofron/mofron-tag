@@ -15,7 +15,7 @@ const util    = require('../util.js');
 let sortChild = (prs, cmp) => {
     try {
         if ("div" === cmp.tag) {
-            cmp.tag = "Component";
+            cmp.tag = "mf.Component";
         }
         
         for (let cidx=0; cidx < cmp.child.length ; cidx++) {
@@ -37,7 +37,7 @@ let sortChild = (prs, cmp) => {
             }
             
             if ( (false === req.isExists(cmp.child[cidx].tag)) &&
-                 ("div" !== cmp.child[cidx].tag) & ("Component" !== cmp.child[cidx].tag)) {
+                 ("div" !== cmp.child[cidx].tag) & ("mf.Component" !== cmp.child[cidx].tag)) {
                 /* this child is attrs, replace object */
                 let atrbuf = cmp.attrs[cmp.child[cidx].tag];
                 if (true === Array.isArray(atrbuf)) {
@@ -115,7 +115,7 @@ let main = (txt) => {
             } else {
                 if ( (false === req.isExists(prs_ret[pidx].tag)) &&
                      ("div" !== prs_ret[pidx].tag) &&
-                     ("Component" !== prs_ret[pidx].tag) ) {
+                     ("mf.Component" !== prs_ret[pidx].tag) ) {
                     throw new Error("unknown component:" + prs_ret[pidx].tag);
                 }
                 ret.component.push(prs_ret[pidx]);

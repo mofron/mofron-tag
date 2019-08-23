@@ -34,7 +34,7 @@ let Component = class extends Declare {
             if (false === prm.src) {
                 /* set value */
                 let val = "new ";
-                val += ('Component' === prm.tag) ? 'mf.' : '';
+                //val += ('Component' === prm.tag) ? 'mf.' : '';
                 val += prm.tag;
                 //if ((undefined !== prm.text) && (null !== prm.text)) {
                 //    let simprm = "";

@@ -79,7 +79,15 @@ module.exports = class extends Base {
     
     color (prm) {
         try {
-            return new Color({ minify: true, autoopt: !this.gencnf().theme }).toScript(prm);
+	    let ret ="";
+            if (true === Array.isArray(prm)) {
+	        ret += "[" + this.mainColor(prm[0]) + ',';
+		ret += this.baseColor(prm[1]) + ',';
+		ret += this.accentColor(prm[2]) + "]";
+	    } else {
+                ret += this.mainColor(prm);
+	    }
+	    return ret;
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -87,21 +95,27 @@ module.exports = class extends Base {
     }
     
     mainColor (prm) {
-        try { return this.color(prm); } catch (e) {
+        try {
+            return new Color({ minify: true, autoopt: !this.gencnf().theme }).toScript(prm);
+	} catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
     
     baseColor (prm) {
-        try { return this.color(prm); } catch (e) {
+        try {
+            return new Color({ minify: true, autoopt: !this.gencnf().theme }).toScript(prm);
+	} catch (e) {
             console.error(e.stack);
             throw e;
         }
     }
     
     accentColor (prm) {
-        try { return this.color(prm); } catch (e) {
+        try {
+            return new Color({ minify: true, autoopt: !this.gencnf().theme }).toScript(prm);
+	} catch (e) {
             console.error(e.stack);
             throw e;
         }

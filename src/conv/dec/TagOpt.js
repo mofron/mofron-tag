@@ -42,11 +42,7 @@ module.exports = class extends Options {
     }
     
     style (prm) {
-        try {
-            return new Style({
-                minify: true, optflg: false
-            }).toScript(prm);
-        } catch (e) {
+        try { return new Style({ minify: true }).toScript(prm); } catch (e) {
             console.error(e.stack);
             throw e;
         }

@@ -19,7 +19,12 @@ module.exports = class extends Base {
                     }
                     prm = prm.substring(0, prm.length-1);
                 }
-                this.add("let " + scp.attrs.name + "=("+ prm +")=>{" + scp.text + "};");
+                this.add("let " + scp.attrs.name + "=("+ prm +")=>{try{");
+                let sp_txt = scp.text.split(';');
+		for (let sp_idx in sp_txt) {
+                    this.add(sp_txt[sp_idx] + ";");
+		}
+		this.add("}catch(e){console.error(e.stack);throw e;}"+ "};");
             } else {
                 this.add(scp.text);
             }

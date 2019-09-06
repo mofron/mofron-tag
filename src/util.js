@@ -31,7 +31,7 @@ try {
                 if ('string' !== typeof str) {
                     return false;
                 }
-                let chk = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                let chk = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
                 let num = false;
                 for (let sidx=0;sidx < str.length; sidx++) {
                     for (let cidx in chk) {
@@ -51,7 +51,7 @@ try {
                 throw e;
             }
         },
-        getParam: (txt) => {
+        getParam: (txt, po) => {
             try {
                 if ('string' !== typeof txt) {
                     return '' + txt;
@@ -64,9 +64,9 @@ try {
                 
                 let ret     = "";
                 let chk_prm = txt.match(/[(][^(]+[)]/g);
+                let sp_txt  = txt.split(',');
                 if (null === chk_prm) {
                     /* single parameter */
-                    let sp_txt = txt.split(',');
                     if (1 === sp_txt.length) {
                         if ('@' === txt[0]) {
                             ret += txt.substring(1);
@@ -79,7 +79,7 @@ try {
                         } else {
                             ret += '"' + txt + '"';
                         }
-                    } else {
+                    } else if (true !== po) {
                         ret += '[';
                         /* array parameter */
                         for (let sp_idx in sp_txt) {
@@ -87,17 +87,22 @@ try {
                         }
                         ret = ret.substring(0, ret.length-1);
                         ret += ']';
-                    }
-                } else if (true === Array.isArray(chk_prm)) {
-                    /* multiple parameter */
-                    ret += "new mf.Param("
-                    for (let cidx in chk_prm) {
-                        ret += thisobj.getParam(chk_prm[cidx].substring(1,chk_prm[cidx].length-1)) + ',';
-                    }
-                    ret = ret.substring(0, ret.length-1);
-                    ret += ")";
+                    } else {
+                        ret += "new mf.Param(";
+                        for (let sp_idx in sp_txt) {
+                            ret += thisobj.getParam(sp_txt[sp_idx]) + ',';
+			}
+			ret = ret.substring(0, ret.length-1) + ')';
+		    }
                 } else {
-                    throw new Error("invalid parameter");
+                    /* multiple parameter */
+		    ret += (true === po) ? "[" : "new mf.Param(";
+		    sp_txt = txt.substring(1, txt.length-1).split(',');
+                    for (let sp_idx in sp_txt) {
+                        ret += thisobj.getParam(sp_txt[sp_idx]) + ',';
+		    }
+		    ret = ret.substring(0, ret.length-1);
+		    ret += (true === po) ? "]" : ')';
                 }
                 return ret;
             } catch (e) {

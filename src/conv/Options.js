@@ -167,7 +167,7 @@ module.exports = class extends Base {
                             }
                             ret += "})";
                         } else {
-                            ret += util.getParam(prm.text);
+                            ret += util.getParam(prm.text, true);
                         }
                     } else {
                         ret += "new mf.Option(" + this._optgen(prm) + ")";
@@ -175,16 +175,19 @@ module.exports = class extends Base {
                 } else {
                     if ("string" === typeof prm.attrs.param) {
                         ret += "new mf.Option({" + prm.attrs.param + ":";
-                        if (1 === prm.child.length) {
-                            ret += "new " + prm.child[0].tag + "(" + this._optgen(prm.child[0]) + ")";
-                        } else {
-                            ret += "[";
-                            for (let cidx in prm.child) {
-                                ret += "new " + prm.child[cidx].tag + "(" + this._optgen(prm.child[cidx]) + "),";
-                            }
-                            ret = ret.substring(0, ret.length-1);
-                            ret += "]";
+			let cmpopt_buf = "";
+			for (let cidx in prm.child) {
+			    let pchd_chd = prm.child[cidx].child;
+			    pchd_chd = (0 === pchd_chd.length) ? undefined : pchd_chd;
+                            cmpopt_buf += "new " + prm.child[cidx].tag + "(" + this._optgen(prm.child[cidx], pchd_chd) + "),";
                         }
+			if (0 < prm.child.length) {
+			    cmpopt_buf = cmpopt_buf.substring(0, cmpopt_buf.length-1);
+                            if (1 < prm.child.length) {
+	                        cmpopt_buf = "[" + cmpopt_buf + "]";
+                            }
+			}
+			ret += cmpopt_buf;
                         ret += "})";
                     } else {
                         let is_array = false;
@@ -206,6 +209,7 @@ module.exports = class extends Base {
                     }
                 }
             } else {
+	        //console.log(prm);
                 ret += util.getParam(prm);
             }
             return ret;
@@ -219,7 +223,7 @@ module.exports = class extends Base {
         try {
             let ret = "{";
             if ((undefined !== cmp.text) && (null !== cmp.text)) {
-                ret += "prmOpt: " + util.getParam(cmp.text) + ',';
+                ret += "prmOpt: " + util.getParam(cmp.text,true) + ',';
             }
             
             if (undefined !== ochd) {
@@ -276,6 +280,7 @@ module.exports = class extends Base {
                 }
                 ret += ",";
             }
+
             return (',' === ret[ret.length-1]) ? ret.substring(0, ret.length-1) + "}" : ret + "}";
         } catch (e) {
             console.error(e.stack);

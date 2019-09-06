@@ -107,6 +107,9 @@ try {
                 if (('{' === prm[0]) && ('}' === prm[prm.length-1])) {
                     return prm;
                 }
+		if (('(' === prm[0]) && (')' === prm[prm.length-1])) {
+                    prm = prm.substring(1,prm.length-1);
+		}
                 /* check array */
                 let sp_prm = prm.split(',');
                 if (1 === sp_prm.length) {
@@ -128,7 +131,17 @@ try {
                 }
                 
                 for (let sp_idx2 in sp_prm) {
-                    ret.push(sp_prm[sp_idx2]);
+                    if (null !== sp_prm[sp_idx2].match(/\w+[(].*[)]/g)) {
+                        ret.push(sp_prm[sp_idx2]);
+                    } else if ( ('(' === sp_prm[sp_idx2][0]) &&
+		                (')' !== sp_prm[sp_idx2][sp_prm[sp_idx2].length-1]) ) {
+                        ret.push(sp_prm[sp_idx2].substring(1));
+		    } else if ( ('(' !== sp_prm[sp_idx2][0]) &&
+		                (')' === sp_prm[sp_idx2][sp_prm[sp_idx2].length-1]) ) {
+                        ret.push(sp_prm[sp_idx2].substring(0, sp_prm[sp_idx2].length-1));
+		    } else {
+                        ret.push(sp_prm[sp_idx2]);
+                    }
                 }
                 return ret;
             } catch (e) {

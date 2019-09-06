@@ -89,13 +89,40 @@ let main = (txt) => {
                         req.add(prs_ret[pidx].child[req_idx]);
                         ret.require.push(prs_ret[pidx].child[req_idx]);
                     } else if (undefined !== prs_ret[pidx].child[req_idx].attrs.src) {
+		        /* require src=xxx */
                         let src = prs_ret[pidx].child[req_idx].attrs.src;
                         fs.readFile(
                             util.isComment(src) ? src.substring(1, src.length-1) : src,
                             'utf8',
                             function (err, tag) {
                                 try {
-                                    ret.srctag[prs_ret[pidx].child[req_idx].text] = main(tag);
+				    let src_main = main(tag);
+				    /* require */
+				    if (0 < src_main.require.length) {
+                                        for (let ridx in src_main.require) {
+                                            ret.require.push(src_main.require[ridx]);
+					}
+				    }
+				    /* srctag */
+                                    ret.srctag[prs_ret[pidx].child[req_idx].text] = src_main;
+				    /* script */
+                                    if (0 < src_main.script.length) {
+                                        for (let scp_idx in src_main.script) {
+                                            ret.script.push(src_main.script[scp_idx]);
+                                        }
+                                    }
+                                    /* responsive */
+				    if (0 < src_main.responsive.length) {
+				        for (let res_idx in src_main.responsive) {
+					    ret.responsive.push(src_main.responsive[scp_idx]);
+					}
+				    }
+				    /* template */
+				    if (0 < Object.keys(src_main.template).length) {
+				        for (let tmp_idx in src_main.template) {
+					    ret.template[tmp_idx] = src_main.template[tmp_idx];
+					}
+				    }
                                 } catch (e) {
                                     console.error(e.stack);
                                     throw e;
@@ -121,7 +148,6 @@ let main = (txt) => {
                 ret.component.push(prs_ret[pidx]);
             }
         }
-        
         return ret;
     } catch (e) {
         console.error(e.stack);

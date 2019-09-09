@@ -242,7 +242,12 @@ module.exports = class extends Base {
                      ('option' === aidx) ||
                      ('param' === aidx)  ||
                      ('size' === aidx) ) {
-                    ret += this[aidx](cmp.attrs[aidx]);
+		     let buf = this[aidx](cmp.attrs[aidx]);
+		     if ('' === buf) {
+                         continue;
+		     } else {
+                         ret += buf;
+	             }
                 } else if ( ('function' === typeof this[aidx]) &&
                             ('toScript' !== aidx) &&
                             ('gencnf' !== aidx) &&

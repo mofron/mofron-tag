@@ -12,6 +12,7 @@ module.exports = class extends Base {
         try {
             this.add("let isdef=[false,false];");
             this.add('let buf="";');
+	    this.add('mf.fsize={};');
             this.add("if(null===document.body.getAttribute('style')){");
             this.add(    "isdef[0]=true;", 2);
             this.add(    "document.body.setAttribute('style','margin:0px;padding:0px;font-size:0.16em;');", 2);
@@ -63,6 +64,15 @@ module.exports = class extends Base {
                 this.add("if(true===isdef[0]){", ind);
                 this.add(    'document.documentElement.setAttribute("style","");', ind+1);
                 this.add(    "mf.func.addHeadStyle('" + media +"');", ind+1);
+                
+		if (undefined === prm.attrs.orientation) {
+                    this.add(    "mf.fsize.vertical='"+ prm.text +"%';", ind+1);
+		    this.add(    "mf.fsize.horizon='"+ prm.text +"%';", ind+1);
+		} else if ('portrait' === prm.attrs.orientation) {
+                    this.add(    "mf.fsize.vertical='"+ prm.text +"%';", ind+1);
+		} else if ('landscape' === prm.attrs.orientation) {
+                    this.add(    "mf.fsize.horizon='"+ prm.text +"%';", ind+1);
+		}
                 this.add("}else{", ind);
                 this.add(    'buf=document.documentElement.getAttribute("style");', ind+1);
                 this.add(    "mf.func.addHeadStyle('buf+" + media +"');", ind+1);

@@ -13,72 +13,69 @@ try {
     }
 
     thisobj = {
-        text: (txt) => {
+        /**
+	 * split attribute key-value and convert value type
+	 * 
+	 * @param (string) attribute string
+	 * @return (object) attribute key-value
+	 */
+        text: (prm) => {
             try {
-                if (0 === txt.length) {
+                if (0 === prm.length) {
                     return {};
                 }
                 let ret    = {};
-                let attrs  = txt.split(' ');
+                let sp_spc = prm.split(' ');
                 let buf    = null;
                 let isharf = false;
-                for (let aidx in attrs) {
-                    if (true === isharf) {
-                        if ( ('"' === attrs[aidx][attrs[aidx].length-1]) ||
-                             ("'" === attrs[aidx][attrs[aidx].length-1]) ) {
-                            /* end harf */
-                            isharf = false;
-                        }
-                        buf[1] += " " + attrs[aidx];
-                    } else {
-                        buf = attrs[aidx].split('=');
-                        if (1 === buf.length) {
-                            continue;
-                        }
-                        if ( (('"' === buf[1][0]) && ('"' !== buf[1][buf[1].length-1])) ||
-                             (("'" === buf[1][0]) && ("'" !== buf[1][buf[1].length-1])) ) {
-                            /* harf attr value */
-                            isharf = true;
-                            continue;
-                        }
-                    }
-                    let ret_hit = false;
-                    for (let ridx in ret) {
-                        if (buf[0] === ridx) {
-                            /* replace attr value */
-                            ret[ridx] = buf[1];
-                            ret_hit = true;
-                            break;
-                        }
-                    }
-                    if (false === ret_hit) {
-                        ret[buf[0]] = buf[1];
-                    }
+		/* split space */
+                for (let sp_idx=0; sp_idx < sp_spc.length ;sp_idx++) {
+                    if (null === sp_spc[sp_idx].match(/[a-zA-Z0-9]+=.+/)) {
+                        /* isn't match key=value */
+			/* concatenate with previous element */
+			sp_spc[sp_idx-1] = sp_spc[sp_idx-1] + ' ' + sp_spc[sp_idx];
+			sp_spc.splice(sp_idx, 1);
+			sp_idx--;
+		    }
                 }
+                /* split equal */
+		let sp_eql
+                for (let sp_idx2 in sp_spc) {
+                    sp_eql = sp_spc[sp_idx2].split('=');
+		    if (null === sp_eql) {
+                        ret[sp_spc[sp_idx2]] = null;
+		    } else if (2 === sp_eql.length) {
+		        ret[sp_eql[0]] = sp_eql[1];
+                    } else {
+		        ret[sp_eql[0]] = '';
+                        for (let eql_idx=1; eql_idx < sp_eql.length ;eql_idx++) {
+                            ret[sp_eql[0]] += '=' + sp_eql[eql_idx];
+			}
+		    }
+		}
+
+                /* convert array */
+                for (let r_idx in ret) {
+                    if ( (null === ret[r_idx]) || (0 === ret[r_idx].length) ) {
+                        continue;
+                    } else if ( ('(' === ret[r_idx][0]) &&
+                                (')' === ret[r_idx][ret[r_idx].length-1]) ) {
+                        /* array */
+                        ret[r_idx] = thisobj.array(ret[r_idx].substring(1,ret[r_idx].length-1));
+                    }
+		}
                 
-                for (let ridx2 in ret) {
-                    ret[ridx2] = thisobj.array(ret[ridx2]);
-                    
-                    if (true === Array.isArray(ret[ridx2])) {
-                        for (let vidx in ret[ridx2]) {
-                            if (true === util.isNumStr(ret[ridx2][vidx])) {
-                                ret[ridx2][vidx] = parseInt(ret[ridx2][vidx]);
-                            } else if ("true" === ret[ridx2][vidx]) {
-                                ret[ridx2][vidx] = true;
-                            } else if ("false" === ret[ridx2][vidx]) {
-                                ret[ridx2][vidx] = false;
-                            }
-                        }
-                    } else {
-                        if (true === util.isNumStr(ret[ridx2])) {
-                            ret[ridx2] = parseInt(ret[ridx2]);
-                        } else if ("true" === ret[ridx2]) {
-                            ret[ridx2] = true;
-                        } else if ("false" === ret[ridx2]) {
-                            ret[ridx2] = false;
-                        } 
-                    }
-                }
+                /* convert type */
+                for (let ridx in ret) {
+                    if (true === Array.isArray(ret[ridx])) {
+                        for (let aidx in ret[ridx]) {
+                            ret[ridx][aidx] = thisobj.datType(ret[ridx][aidx]);
+			}
+		    } else {
+                        ret[ridx] = thisobj.datType(ret[ridx]);
+		    }
+		}
+
                 return ret;
             } catch (e) {
                 console.error(e.stack);
@@ -87,60 +84,73 @@ try {
         },
         array: (prm) => {
             try {
-                let isHarf = (p1) => {
+                let is_harf = (prm) => {
                     try {
-                        if ("'" === p1[0]) {
-                            return ("'" === p1[p1.length-1]) ? false : true;
-                        } else if ('"' === p1[0]) {
-                            return ('"' === p1[p1.length-1]) ? false : true;
-                        } else if (p1.match(/\w+[(]/g)) {
-                            return (')' === p1[p1.length-1]) ? false : true;
-                        }
+                        let chk = null;
+                        for (let ihp_idx in prm) {
+                            if (null === chk) {
+			        if ( ("'" === prm[ihp_idx]) ||
+				     ('"' === prm[ihp_idx]) ||
+				     ("(" === prm[ihp_idx]) ) {
+                                    chk = prm[ihp_idx];
+				}
+			    } else if ( (("'" === chk) || ('"' === chk)) &&
+			                (chk === prm[ihp_idx]) ) {
+		                return false;
+			    } else if ( ("(" === chk) && (")" === prm[ihp_idx]) ) {
+                                return false;
+			    }
+			}
+			if (null !== chk) {
+                            return true;
+			}
                         return false;
                     } catch (e) {
                         console.error(e.stack);
                         throw e;
                     }
                 }
-                let ret = [];
-                /* check object */
-                if (('{' === prm[0]) && ('}' === prm[prm.length-1])) {
+		let sp_prm = prm.split(',');
+		if (1 === sp_prm.length) {
                     return prm;
-                }
-		if (('(' === prm[0]) && (')' === prm[prm.length-1])) {
-                    prm = prm.substring(1,prm.length-1);
 		}
-                /* check array */
-                let sp_prm = prm.split(',');
-                if (1 === sp_prm.length) {
-                    return prm;
-                }
-                
-                let sp_buf = null;
-                for (let sp_idx=0; sp_idx < sp_prm.length ;sp_idx++) {
-                    if (true === isHarf(sp_prm[sp_idx])) {
-                        if ((sp_idx+1) >= sp_prm.length) {
-                            throw new Error('invalid attr: ' + sp_prm[sp_idx]);
-                        }
-                        sp_buf = sp_prm[sp_idx] + ',' + sp_prm[sp_idx+1];
-                        sp_prm[sp_idx] = sp_buf;
+		for (let sp_idx=0; sp_idx < sp_prm.length ;sp_idx++) {
+                    /* check harf */
+		    if ( (true === is_harf(sp_prm[sp_idx])) && (sp_idx < sp_prm.length-1) ) {
+		        sp_prm[sp_idx] = sp_prm[sp_idx] + ',' + sp_prm[sp_idx+1];
                         sp_prm.splice(sp_idx+1, 1);
-                        sp_idx = -1;
-                        continue;
+			sp_idx--;
+		    }
+		}
+		let ret = [];
+		for (let sp_idx2 in sp_prm) {
+                    ret.push(sp_prm[sp_idx2]);
+		}
+                return ret;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        },
+        datType: (prm) => {
+            try {
+                let ret = prm;
+                if (true === util.isNumStr(prm)) {
+                    if (1 < prm.split('.').length) {
+                        /* float */
+                        ret = parseFloat(prm);
+                    } else {
+                        /* integer */
+                        ret = parseInt(prm);
                     }
-                }
-                
-                for (let sp_idx2 in sp_prm) {
-                    if (null !== sp_prm[sp_idx2].match(/\w+[(].*[)]/g)) {
-                        ret.push(sp_prm[sp_idx2]);
-                    } else if ( ('(' === sp_prm[sp_idx2][0]) &&
-		                (')' !== sp_prm[sp_idx2][sp_prm[sp_idx2].length-1]) ) {
-                        ret.push(sp_prm[sp_idx2].substring(1));
-		    } else if ( ('(' !== sp_prm[sp_idx2][0]) &&
-		                (')' === sp_prm[sp_idx2][sp_prm[sp_idx2].length-1]) ) {
-                        ret.push(sp_prm[sp_idx2].substring(0, sp_prm[sp_idx2].length-1));
-		    } else {
-                        ret.push(sp_prm[sp_idx2]);
+                } else if ("true" === prm) {
+                    ret = true;
+                } else if ("false" === prm) {
+                    ret = false;
+                } else if (true === Array.isArray(prm)) {
+                    ret = [];
+                    for (let p_idx in prm) {
+                        ret.push(thisobj.datType(prm[p_idx]));
                     }
                 }
                 return ret;

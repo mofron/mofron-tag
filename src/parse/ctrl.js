@@ -55,6 +55,10 @@ let sortChild = (prs, cmp) => {
                 cmp.child[cidx] = sortChild(prs, cmp.child[cidx]);
             }
         }
+        
+	if (null !== cmp.text) {
+            cmp.text = attr.text("text=" + cmp.text).text;
+	}
         return cmp;
     } catch (e) {
         console.error(e.stack);
@@ -148,6 +152,7 @@ let main = (txt) => {
                 ret.component.push(prs_ret[pidx]);
             }
         }
+
         return ret;
     } catch (e) {
         console.error(e.stack);

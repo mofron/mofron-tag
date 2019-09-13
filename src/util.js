@@ -51,59 +51,40 @@ try {
                 throw e;
             }
         },
-        getParam: (txt, po) => {
+        getParam: (prm, po) => {
             try {
-                if ('string' !== typeof txt) {
-                    return '' + txt;
+	        let ret = "";
+                if (true === Array.isArray(prm)) {
+                    ret += (true === po) ? "new mf.Param(" : "[";
+                    for (let pidx in prm) {
+			ret += thisobj.getParam(prm[pidx]) + ',';
+                    }
+		    ret = ret.substring(0, ret.length-1);
+		    ret += (true === po) ? ")" : "]";
+		    return ret;
+		}
+                
+                if ('string' !== typeof prm) {
+                    return '' + prm;
                 }
                 /* check instance */
-                if ( (false === thisobj.isComment(txt)) &&
-                     (null !== txt.match(/\w+[(].*[)]/g)) ) {
-                    return 'new ' + txt;
+                if ( (false === thisobj.isComment(prm)) &&
+                     (null !== prm.match(/\w+[(].*[)]/g)) ) {
+                    return 'new ' + prm;
                 }
                 
-                let ret     = "";
-                let chk_prm = txt.match(/[(][^(]+[)]/g);
-                let sp_txt  = txt.split(',');
-                if (null === chk_prm) {
-                    /* single parameter */
-                    if (1 === sp_txt.length) {
-                        if ('@' === txt[0]) {
-                            ret += txt.substring(1);
-                        } else if ( (true === thisobj.isComment(txt)) ||
-                                    (true === thisobj.isNumStr(txt))  ||
-                                    (("true" === txt) || "false" === txt) ) {
-                            ret += txt;
-                        } else if ( ('[' === txt[0]) && (']' === txt[1]) ) {
-                            ret += txt;
-                        } else {
-                            ret += '"' + txt + '"';
-                        }
-                    } else if (true !== po) {
-                        ret += '[';
-                        /* array parameter */
-                        for (let sp_idx in sp_txt) {
-                            ret += thisobj.getParam(sp_txt[sp_idx]) + ',';
-                        }
-                        ret = ret.substring(0, ret.length-1);
-                        ret += ']';
-                    } else {
-                        ret += "new mf.Param(";
-                        for (let sp_idx in sp_txt) {
-                            ret += thisobj.getParam(sp_txt[sp_idx]) + ',';
-			}
-			ret = ret.substring(0, ret.length-1) + ')';
-		    }
+                if ('@' === prm[0]) {
+                    ret += prm.substring(1);
+                } else if ( (true === thisobj.isComment(prm)) ||
+                            (true === thisobj.isNumStr(prm))  ||
+                            (("true" === prm) || "false" === prm) ) {
+                    ret += prm;
+                } else if ( ('[' === prm[0]) && (']' === prm[1]) ) {
+                    ret += prm;
                 } else {
-                    /* multiple parameter */
-		    ret += (true === po) ? "[" : "new mf.Param(";
-		    sp_txt = txt.substring(1, txt.length-1).split(',');
-                    for (let sp_idx in sp_txt) {
-                        ret += thisobj.getParam(sp_txt[sp_idx]) + ',';
-		    }
-		    ret = ret.substring(0, ret.length-1);
-		    ret += (true === po) ? "]" : ')';
+                    ret += '"' + prm + '"';
                 }
+
                 return ret;
             } catch (e) {
                 console.error(e.stack);

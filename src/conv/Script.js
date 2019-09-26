@@ -14,11 +14,13 @@ module.exports = class extends Base {
                 let prm = ("string" === typeof scp.attrs.param) ? scp.attrs.param : "";
                 if (true === Array.isArray(scp.attrs.param)) {
                     for (let pidx in scp.attrs.param) {
-                        //console.log(scp.attrs.param);
                         prm += scp.attrs.param[pidx] + ',';
                     }
                     prm = prm.substring(0, prm.length-1);
-                }
+                } else {
+                    /* set default parameter name */
+                    prm += scp.attrs.name + '1,' + scp.attrs.name + '2,' + scp.attrs.name + '3';
+		}
                 this.add("let " + scp.attrs.name + "=("+ prm +")=>{try{");
                 let sp_txt = scp.text.split(';');
 		for (let sp_idx in sp_txt) {

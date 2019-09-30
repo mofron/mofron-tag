@@ -77,7 +77,7 @@ try {
                     ret += prm.substring(1);
                 } else if ( (true === thisobj.isComment(prm)) ||
                             (true === thisobj.isNumStr(prm))  ||
-                            (("true" === prm) || "false" === prm) ) {
+                            (("true" === prm) || "false" === prm) || ("null" === prm) ) {
                     ret += prm;
                 } else if ( ('[' === prm[0]) && (']' === prm[1]) ) {
                     ret += prm;

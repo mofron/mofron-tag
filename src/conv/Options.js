@@ -148,6 +148,7 @@ module.exports = class extends Base {
     
     _otheropt (prm) {
         try {
+
             let ret = "";
             if (true === Array.isArray(prm)) {
                 ret += '[';
@@ -156,8 +157,9 @@ module.exports = class extends Base {
                 }
                 ret = ret.substring(0, ret.length-1) + ']';
             } else if ('object' === typeof prm) {
-                if (0 === prm.child.length) {
-                    if ( (null !== prm.text) && (0 < prm.text.length) ) {
+
+               if (0 === prm.child.length) {
+                   if (null !== prm.text) {
                         if ("string" === typeof prm.attrs.param) {
                             ret += "new mf.Option({" + prm.attrs.param + ":";
                             if ('function' === typeof this[prm.attrs.param]) {

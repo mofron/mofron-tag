@@ -12,7 +12,7 @@ module.exports = class extends Base {
         try {
             this.add("let isdef=[false,false];");
             this.add('let buf="";');
-	    this.add('mf.fsize={};');
+	    this.add('mf.fsize={vertical:"625%",horizon:"625%"};');
             this.add("if(null===document.body.getAttribute('style')){");
             this.add(    "isdef[0]=true;", 2);
             this.add(    "document.body.setAttribute('style','margin:0px;padding:0px;font-size:0.16em;');", 2);

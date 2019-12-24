@@ -1,11 +1,40 @@
 /**
  * @file attrs.js
- * @brief parse attribute
+ * @brief parse tag attribute
  * @author simparts
  */
 const util = require('../util.js');
+const ConfArg = require('./ConfArg.js');
 
 let thisobj = null;
+
+let get_camel = (txt) => {
+    try {
+        /* check parameter */
+        if ( ('string' !== (typeof txt)) ||
+             ((txt.length-1) === txt.lastIndexOf('-')) ) {
+            throw new Error('invalid parameter');
+        } else if (-1 === txt.indexOf('-')) {
+            return txt;
+        }
+        
+        let ret    = "";
+        let sp_txt = txt.split('-');
+        for (let sp_idx in sp_txt) {
+	    if (0 == sp_idx) {
+	         ret += sp_txt[sp_idx];
+	         continue;
+	    }
+            ret += sp_txt[sp_idx].charAt(0).toUpperCase();
+            ret += sp_txt[sp_idx].substr(1);
+        }
+        
+        return ret;
+    } catch (e) {
+        console.error(e.stack);
+        throw e;
+    }
+}
 
 try {
     if (null !== thisobj) {
@@ -13,75 +42,76 @@ try {
     }
 
     thisobj = {
-        /**
-	 * split attribute key-value and convert value type
-	 * 
-	 * @param (string) attribute string
-	 * @return (object) attribute key-value
-	 */
-        text: (prm) => {
+        
+	rawtxt2kv: (prm) => {
             try {
+	        let ret = {};
                 if (0 === prm.length) {
-                    return {};
+                    return ret;
                 }
-                let ret    = {};
                 let sp_spc = prm.split(' ');
                 let buf    = null;
                 let isharf = false;
-		/* split space */
+                
+                /* split space */
                 for (let sp_idx=0; sp_idx < sp_spc.length ;sp_idx++) {
                     if (null === sp_spc[sp_idx].match(/[a-zA-Z0-9]+=.+/)) {
                         /* isn't match key=value */
-			/* concatenate with previous element */
-			sp_spc[sp_idx-1] = sp_spc[sp_idx-1] + ' ' + sp_spc[sp_idx];
-			sp_spc.splice(sp_idx, 1);
-			sp_idx--;
-		    }
+                        /* concatenate with previous element */
+                        sp_spc[sp_idx-1] = sp_spc[sp_idx-1] + ' ' + sp_spc[sp_idx];
+                        sp_spc.splice(sp_idx, 1);
+                        sp_idx--;
+                    }
                 }
                 /* split equal */
-		let sp_eql
+                let sp_eql
                 for (let sp_idx2 in sp_spc) {
                     sp_eql = sp_spc[sp_idx2].split('=');
-		    if (null === sp_eql) {
+                    if (null === sp_eql) {
                         ret[sp_spc[sp_idx2]] = null;
-		    } else if (2 === sp_eql.length) {
-		        ret[sp_eql[0]] = sp_eql[1];
+                    } else if (2 === sp_eql.length) {
+                        ret[get_camel(sp_eql[0])] = sp_eql[1];
                     } else {
-		        ret[sp_eql[0]] = '';
+                        ret[sp_eql[0]] = '';
                         for (let eql_idx=1; eql_idx < sp_eql.length ;eql_idx++) {
                             ret[sp_eql[0]] += '=' + sp_eql[eql_idx];
-			}
-		    }
-		}
-
-                /* convert array */
-                for (let r_idx in ret) {
-                    if ( (null === ret[r_idx]) || (0 === ret[r_idx].length) ) {
-                        continue;
-                    } else if ( ('(' === ret[r_idx][0]) &&
-                                (')' === ret[r_idx][ret[r_idx].length-1]) ) {
-                        /* array */
-                        ret[r_idx] = thisobj.array(ret[r_idx].substring(1,ret[r_idx].length-1));
+                        }
                     }
+                }
+                /* convert value to every data type */
+                for (let ridx in ret) {
+                    ret[ridx] = thisobj.rawval2type(ret[ridx]);
 		}
                 
-                /* convert type */
-                for (let ridx in ret) {
-                    if (true === Array.isArray(ret[ridx])) {
-                        for (let aidx in ret[ridx]) {
-                            ret[ridx][aidx] = thisobj.datType(ret[ridx][aidx]);
-			}
-		    } else {
-                        ret[ridx] = thisobj.datType(ret[ridx]);
-		    }
-		}
-
-                return ret;
-            } catch (e) {
-                console.error(e.stack);
+		return ret;
+	    } catch (e) {
+	        console.error(e.stack);
                 throw e;
             }
-        },
+	},
+        rawval2type: (val) => {
+            try {
+                /* convert array */
+                if ( (null === val) || (0 === val.length) ) {
+                    return val;
+                } else if ( ('(' === val[0]) && (')' === val[val.length-1]) ) {
+                    /* array */
+                    let ret = thisobj.array(val.substring(1,val.length-1));
+                    for (let ridx in ret) {
+		        ret[ridx] = thisobj.rawval2type(ret[ridx]);
+		    }
+                    return ret;
+		} else if (('$' === val[0]) && ('(' === val[1]) && (')' === val[val.length-1])) {
+		    return new ConfArg(thisobj.rawval2type(val.substr(1)));
+		} else {
+                    return thisobj.datType(val);
+		}
+	    } catch (e) {
+                console.error(e.stack);
+		throw e;
+	    }
+	},
+        
         array: (prm) => {
             try {
                 let is_harf = (prm) => {

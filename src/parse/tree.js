@@ -4,6 +4,7 @@
  * @author simparts
  */
 const attrs = require('./attrs.js');
+const util  = require('../util.js');
 
 /**
  * build tag tree object
@@ -15,10 +16,36 @@ let tree = (prm) => {
              if (undefined === prm[pidx].tagName) {
                  continue;
              }
-             let buf    = {};
-             buf.tag    = prm[pidx].tagName;
-             buf.src    = false;
-             buf.attrs  = attrs.text(prm[pidx].rawAttrs);
+             let buf   = {};
+             buf.tag   = util.getCamel(prm[pidx].tagName);
+             
+	     /*** set attributes ***/
+	     buf.attrs = {};
+             if (':' === prm[pidx].rawAttrs[0]) {
+                 /* pull config */
+	         let sp_idx = prm[pidx].rawAttrs.indexOf(' ');
+	         if (-1 === sp_idx) {
+		     buf.tag += prm[pidx].rawAttrs;
+		 } else {
+                     buf.tag += prm[pidx].rawAttrs.substring(0,sp_idx);
+                     buf.attrs = attrs.rawtxt2kv(
+		                     prm[pidx].rawAttrs.substring(sp_idx+1)
+				 );
+		 }
+             } else {
+	         /* convert to array if attrs is overrided */
+	         let set_atr = attrs.rawtxt2kv(prm[pidx].rawAttrs);
+		 for (let set_idx in set_atr) {
+                     if (undefined !== buf.attrs[set_idx]) {
+                         if (false === Array.isArray(buf.attrs[set_idx])) {
+                             buf.attrs[set_idx] = [buf.attrs[set_idx]];
+			 }
+			 buf.attrs[set_idx].push(set_atr[set_idx]);
+		     } else {
+                         buf.attrs[set_idx] = set_atr[set_idx];
+		     }
+		 }
+	     }
              buf.child  = [];
              
              /* get text */
@@ -26,7 +53,7 @@ let tree = (prm) => {
              if (0 < prm[pidx].childNodes.length) {
                  let txt = prm[pidx].childNodes[0].toString().split('\n');
                  if (1 === txt.length) {
-                     buf.text = ('' === txt[0]) ? null : txt[0];
+                     buf.text = attrs.rawval2type(txt[0]);
                  } else {
                      let set_txt = "";
                      for (let tidx in txt) {
@@ -36,7 +63,7 @@ let tree = (prm) => {
                          }
                      }
                      if ("" !== set_txt) {
-                         buf.text = set_txt;
+                         buf.text = attrs.rawval2type(set_txt);
                      }
                      
                  }

@@ -3,54 +3,62 @@
  * @brief mofron-tag command
  * @author simparts
  */
-const fs    = require('fs');
-const parse = require('./src/parse/ctrl.js');
-const conv  = require('./src/conv/ctrl.js');
+const fs = require('fs');
+const Parser = require('./src/parse/Parser.js');
+const sort = require('./src/parse/sort.js');
+const mfconverter = require('./src/conv/controller.js');
 
-let write = (js) => {
+let exec_load = (src) => {
     try {
-        if (4 > process.argv.length) {
-            console.log(js);
-        } else if (4 === process.argv.length) {
-            fs.writeFile(
-                process.argv[3],
-                js,
-                (err) => {
-                    if (null !== err)  {
-                        console.log(err);
-                    }
-                }
-            );
-        }
+        return new Promise(resolve => {
+	    fs.readFile(src, 'utf8',
+                (err,tag) => {
+                    try {
+                        if (undefined === tag) {
+                            throw new Error("read file is failed:" + src);
+                        }
+                        resolve(new Parser(tag).parse());
+		    } catch (e) {
+                        console.error(e.stack);
+			throw e;
+		    }
+		}
+	    );
+	});
     } catch (e) {
         console.error(e.stack);
-        throw e;
+	throw e;
+    }
+}
+
+
+let exec = async () => {
+    try {
+        /* load mofron tag */
+	let mof = null
+        await exec_load(
+	    (3 > process.argv.length) ? './index.mof' : process.argv[2]
+	).then(
+	    result => { mof = result; }
+	);
+        sort(mof);
+
+	let js = mfconverter(mof);
+        
+	/* write converted js code */
+	if (4 > process.argv.length) {
+	    console.log(js);
+	} else if (4 === process.argv.length) {
+            fs.writeFile(
+	        process.argv[3], js,
+		(err) => { if (null !== err) console.log(err); }
+	    );
+	}
+    } catch (e) {
+        console.error(e.stack);
+	throw e;
     }
 };
 
-fs.readFile(
-    (3 > process.argv.length) ?  './tag/index.mof' : process.argv[2],
-    'utf8',
-    function (err, tag) {
-        try {
-            let prs_tag = parse.main(tag);
-            setTimeout(
-                () => {
-                    try {
-                        parse.sort(prs_tag);
-                        //console.log(conv(prs_tag));
-                        write(conv(prs_tag));
-                    } catch (e) {
-                        console.error(e.stack);
-                        throw e;
-                    }
-                },
-                1000
-            );
-        } catch (e) {
-            console.error(e.stack);
-            throw e;
-        }
-    }
-);
+exec();
 /* end of file */

@@ -63,7 +63,11 @@ let tree = (prm) => {
                          }
                      }
                      if ("" !== set_txt) {
-                         buf.text = attrs.rawval2type(set_txt);
+		         if ("script" === prm[pidx].tagName) {
+                             buf.text = set_txt;
+			 } else {
+                             buf.text = attrs.rawval2type(set_txt);
+			 }
                      }
                      
                  }

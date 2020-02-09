@@ -35,7 +35,10 @@ module.exports = class {
 	    }
             /* load script contents that are separated file */
 	    for (let sidx in this.m_return.script) {
-	        await this.loadScript(this.m_return.script[sidx]);
+	        let scp = this.m_return.script[sidx];
+	        if (undefined !== scp.attrs.src) {
+	            await this.loadScript(scp);
+		} 
             }
             return this.m_return;
 	} catch (e) {

@@ -2,14 +2,34 @@
  * @file sort.js
  * 
  */
+const Module = require('./ModValue.js');
+const attrs  = require('./attrs.js');
+
 let req = null;
 let sort = (cmp) => {
     try {
+        /* check attrs value */
+	for (let aidx in cmp.attrs) {
+
+	    let atr_val = cmp.attrs[aidx];
+	    if (('string' !== typeof cmp.attrs[aidx]) || (-1 === atr_val.indexOf(':'))) {
+                continue;
+	    }
+	    let mod_nm  = atr_val.substring(0, atr_val.indexOf(':'));
+            if (true === req.isExists(mod_nm)) {
+	        let mod_val = '';
+	        if ('' !== atr_val) {
+                    mod_val = attrs.rawval2type(atr_val.substr(atr_val.indexOf(':')+1));
+		}
+                /* attrs value is module */
+		cmp.attrs[aidx] = new Module(mod_nm, mod_val);
+	    }
+	}
 
         for (let chd_idx=0; chd_idx < cmp.child.length ; chd_idx++) {
-            
+
+	    /* check child tag name */
 	    let chd_tag = cmp.child[chd_idx].tag;
-	    
 	    if ( (false === req.isExists(chd_tag)) && ("div" !== chd_tag) ) {
                 /* this child is attrs, move to attrs */
 		sort(cmp.child[chd_idx]);

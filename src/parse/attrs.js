@@ -7,34 +7,33 @@ const util = require('../util.js');
 const ConfArg = require('./ConfArg.js');
 
 let thisobj = null;
-
-let get_camel = (txt) => {
+let is_harf = (prm) => {
     try {
-        /* check parameter */
-        if ( ('string' !== (typeof txt)) ||
-             ((txt.length-1) === txt.lastIndexOf('-')) ) {
-            throw new Error('invalid parameter');
-        } else if (-1 === txt.indexOf('-')) {
-            return txt;
+        let chk = null;
+        for (let ihp_idx in prm) {
+            if (null === chk) {
+                if ( ("'" === prm[ihp_idx]) ||
+                     ('"' === prm[ihp_idx]) ||
+                     ("(" === prm[ihp_idx]) ) {
+                    chk = prm[ihp_idx];
+                }
+            } else if ( (("'" === chk) || ('"' === chk)) &&
+                        (chk === prm[ihp_idx]) ) {
+                return false;
+            } else if ( ("(" === chk) && (")" === prm[ihp_idx]) ) {
+                return false;
+            }
         }
-        
-        let ret    = "";
-        let sp_txt = txt.split('-');
-        for (let sp_idx in sp_txt) {
-	    if (0 == sp_idx) {
-	         ret += sp_txt[sp_idx];
-	         continue;
-	    }
-            ret += sp_txt[sp_idx].charAt(0).toUpperCase();
-            ret += sp_txt[sp_idx].substr(1);
+        if (null !== chk) {
+            return true;
         }
-        
-        return ret;
+        return false;
     } catch (e) {
         console.error(e.stack);
         throw e;
     }
 }
+
 
 try {
     if (null !== thisobj) {
@@ -70,7 +69,7 @@ try {
                     if (null === sp_eql) {
                         ret[sp_spc[sp_idx2]] = null;
                     } else if (2 === sp_eql.length) {
-                        ret[get_camel(sp_eql[0])] = sp_eql[1];
+                        ret[util.getCamel(sp_eql[0])] = sp_eql[1];
                     } else {
                         ret[sp_eql[0]] = '';
                         for (let eql_idx=1; eql_idx < sp_eql.length ;eql_idx++) {
@@ -91,21 +90,43 @@ try {
 	},
         rawval2type: (val) => {
             try {
-                /* convert array */
-                if ( (null === val) || (0 === val.length) ) {
-                    return val;
-                } else if ( ('(' === val[0]) && (')' === val[val.length-1]) ) {
-                    /* array */
-                    let ret = thisobj.array(val.substring(1,val.length-1));
-                    for (let ridx in ret) {
-		        ret[ridx] = thisobj.rawval2type(ret[ridx]);
+	        let ret = null;
+		if ( ("string" === typeof val) &&
+		     (-1 !== val.indexOf(',')) &&
+		     ( !(('(' === val[0]) && (')' === val[val.length-1])) && !(('[' === val[0]) && (']' === val[val.length-1])) ) ) {
+		    /* check short form style confarg */
+                    let sp_val = val.split(',');
+		    let hrf    = false;
+                    for (let sidx in sp_val) {
+                        if (true === is_harf(sp_val[sidx])) {
+                            hrf = true;
+			    break;
+			}
 		    }
-                    return ret;
-		} else if (('$' === val[0]) && ('(' === val[1]) && (')' === val[val.length-1])) {
-		    return new ConfArg(thisobj.rawval2type(val.substr(1)));
-		} else {
-                    return thisobj.datType(val);
+		    if (false === hrf) {
+                        val = '(' + val + ')';
+		    }
 		}
+                
+		if ( (null === val) || (0 === val.length) ) {
+                    ret = val;
+                } else if ( ('(' === val[0]) && (')' === val[val.length-1]) ) {
+                    /* config-args */
+		    var arg = thisobj.array(val.substring(1, val.length-1));
+		    for (let aidx in arg) {
+                        arg[aidx] = thisobj.rawval2type(arg[aidx]);
+		    }
+		    ret = new ConfArg(arg);
+		} else if ( ('[' === val[0]) && (']' === val[val.length-1]) ) {
+		    /* array */
+                    ret = thisobj.array(val.substring(1,val.length-1));
+                    for (let ridx in ret) {
+                        ret[ridx] = thisobj.rawval2type(ret[ridx]);
+		    }
+		} else {
+                    ret = thisobj.datType(val);
+		}
+		return ret;
 	    } catch (e) {
                 console.error(e.stack);
 		throw e;
@@ -114,32 +135,6 @@ try {
         
         array: (prm) => {
             try {
-                let is_harf = (prm) => {
-                    try {
-                        let chk = null;
-                        for (let ihp_idx in prm) {
-                            if (null === chk) {
-			        if ( ("'" === prm[ihp_idx]) ||
-				     ('"' === prm[ihp_idx]) ||
-				     ("(" === prm[ihp_idx]) ) {
-                                    chk = prm[ihp_idx];
-				}
-			    } else if ( (("'" === chk) || ('"' === chk)) &&
-			                (chk === prm[ihp_idx]) ) {
-		                return false;
-			    } else if ( ("(" === chk) && (")" === prm[ihp_idx]) ) {
-                                return false;
-			    }
-			}
-			if (null !== chk) {
-                            return true;
-			}
-                        return false;
-                    } catch (e) {
-                        console.error(e.stack);
-                        throw e;
-                    }
-                }
 		let sp_prm = prm.split(',');
 		if (1 === sp_prm.length) {
                     return prm;

@@ -28,7 +28,7 @@ module.exports = class extends Base {
 	    super.toScript();
 
 	    this.add("require('expose-loader?app!../conf/namesp.js');",0);
-	    this.add("const mf=require('mofron');",0);
+	    this.add("require('mofron');",0);
 
 	    let prm = this.param();
 

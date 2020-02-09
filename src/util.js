@@ -90,10 +90,6 @@ try {
 		} else if ("string" === typeof prm) {
                     if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
                         ret += prm;
-		    } else if (null !== prm.match(/\w+[(].*[)]/g)) {
-                        ret += 'new ' + prm;
-		    } else if ( ('[' === prm[0]) && (']' === prm[1]) ) {
-                        ret += prm;
 		    } else if ("@" === prm[0]) {
                         ret += prm.substr(1);
 		    } else if ( ("true" === prm) || ("false" === prm) || ("null" === prm) ) {
@@ -101,10 +97,21 @@ try {
 		    } else {
                         ret += ("@" === prm[0]) ? prm.substr(1) :  '"' + prm + '"';
 		    }
-		} else if ("number" === typeof prm) {
-		    ret += prm;
+		} else if ("object" === typeof prm) {
+		    if ("ConfArg" === prm.constructor.name) {
+		        ret += "new mofron.class.ConfArg(";
+                        let arg = prm.value();
+                        for (let aidx in arg) {
+                            ret += thisobj.getParam(arg[aidx]) + ",";
+                        }
+                        ret = ret.substring(0, ret.length-1);
+		        return ret + ")";
+		    } else if ("ModValue" === prm.constructor.name) {
+		        ret += "new " + prm.name() + "(" + thisobj.getParam(prm.value()) + ")";
+                        //console.log("this is module value");
+		    }
 		} else {
-                    console.log(prm);
+		    ret += prm;
 		}
 		return ret;
             } catch (e) {

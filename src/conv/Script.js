@@ -13,16 +13,8 @@ module.exports = class extends Base {
     constructor (prm, cnf) {
         try {
             super(prm);
-	    //if (undefined === cnf.type) {
-            //    cnf.type = "before";
-	    //}
-	    //this.gencnf().comment = "script (" + cnf.type + ")";
-            //if ("after" === cnf.type) {
-            //    this.gencnf().defidt = 2;
-	    //}
+
             this.gencnf(cnf);
-
-
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -72,13 +64,14 @@ module.exports = class extends Base {
 	    super.toScript();
             
             for (let pidx in prm) {
+	        let name = prm[pidx].attrs.name;
                 if ( (type !== prm[pidx].attrs.run) &&
 		     !((undefined === prm[pidx].attrs.run) && ("before" === type)) ) {
 		    /* not matched type, skip */
                     continue;
 		}
                 
-		if (undefined !== prm[pidx].attrs.name) {
+		if (undefined !== name) {
                     /* create function parameter */
                     let scp_prm = "";
                     if (true === Array.isArray(prm[pidx].attrs.param)) {
@@ -87,25 +80,23 @@ module.exports = class extends Base {
                         }
                     } else {
                         /* set default parameter name */
-                        scp_prm += prm[pidx].attrs.name + '1,' + prm[pidx].attrs.name + '2,' + prm[pid].attrs.name + '3';
+                        scp_prm += name + '1,' + name + '2,' + name + '3';
                     }
 		    /* declare function */
-		    let dec_opt = { name: prm[pid].attrs.name };
-                    this.add(
-		        new Declare(dec_opt).toScript("(" + scp_prm + ")=>{")
-		    );
+		    this.add("let " + name + "=" + "(" + scp_prm + ")=>{");
                 }
                 /* set contents */
-
-		//console.log(prm[pidx]);
-
                 let sp_txt = prm[pidx].text.split(';');
                 for (let sp_idx in sp_txt) {
 		    if ( (sp_idx == sp_txt.length-1) &&
 		         ('' == sp_txt[sp_idx]) ) {
                         break;
 		    }
-                    this.add(sp_txt[sp_idx] + ';');
+                    this.add(sp_txt[sp_idx] + ';', (undefined !== name) ? 2 : this.gencnf().defidt);
+		}
+                
+		if (undefined !== name) {
+                    this.add("}");
 		}
 	    }
             return this.m_script;

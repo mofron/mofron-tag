@@ -38,16 +38,16 @@ module.exports = class extends Base {
     objval (prm) {
         try {
 	    let ret = "";
-            
-	    if ("ConfArg" === prm.constructor.name) {
-		ret += "new mofron.class.ConfArg(";
-                //console.log(value);
-                
-                return ret + ")";
+	    if ( ("ConfArg" === prm.constructor.name) ||
+	         ("ModValue" === prm.constructor.name) ) {
+                return util.getParam(prm);
 	    } else if (0 < prm.child.length) {
                 ret += (1 < prm.child.length) ? "[" : "";
 		for (let cidx in prm.child) {
 		    ret += "new " + prm.child[cidx].tag + "({";
+                    if (null !== prm.child[cidx].text) {
+		        ret += "config:" + util.getParam(prm.child[cidx].text) + ",";
+                    }
 		    ret += this.child(prm.child[cidx]);
 		    ret += this.cnfcode(prm.child[cidx])
 		    ret += "}),";
@@ -58,6 +58,8 @@ module.exports = class extends Base {
 	        /* exp. style tag */
                 ret += util.getParam(prm.text);
                 prm.text = null;
+	    } else if (0 < Object.keys(prm.attrs).length) {
+                return "{" + this.cnfcode(prm) + "}";
 	    }
             
 	    /* option parameter */
@@ -77,9 +79,9 @@ module.exports = class extends Base {
             let ret = "";
             
             /* set short form parameter */
-            if (null !== prm.text) {
-	        ret += "config:" + util.getParam(prm.text) + ",";
-	    }
+            //if (null !== prm.text) {
+	    //    ret += "config:" + util.getParam(prm.text) + ",";
+	    //}
             
 	    let buf = null;
 	    let atr = null;
@@ -114,7 +116,6 @@ module.exports = class extends Base {
     toScript () {
         try {
 	    let prm = this.param();
-
             this.add(prm.name + ".config({" + this.cnfcode(prm) + "});");
 
             return this.m_script;

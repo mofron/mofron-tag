@@ -93,7 +93,10 @@ module.exports = class Spkeys {
                 return "baseColor:" + util.getParam(val);
 	    } else if ("3" === sp_key[1]) {
                 return "accentColor:" + util.getParam(val);
+	    } else if ("" === sp_key[1]) {
+                return key + ":" + util.getParam(val);
 	    }
+            return "";
 	} catch (e) {
             throw e;
 	}
@@ -182,14 +185,19 @@ module.exports = class Spkeys {
 	}
     }
     
+    /* modify key */
     modkey (type, val) {
         try {
 	    let ret  = "";
             if ("pull" === type) {
                 ret += "new mofron.class.PullConf({";
-                if ( ("object" === typeof val) && (false === Array.isArray(val)) ) {
-                    ret += this.m_cnfgen.objval(val);
-                }
+		ret += this.m_cnfgen.cnfcode(val);
+		if (0 < val.child.length) {
+                    ret += "child:" + this.m_cnfgen.objval(val);
+		}
+                //if ( ("object" === typeof val) && (false === Array.isArray(val)) ) {
+                //    ret += this.m_cnfgen.objval(val);
+                //}
                 ret += "})";
             } else if ("args" === type) {
                 ret += "new mofron.class.ConfArg(";
@@ -207,8 +215,11 @@ module.exports = class Spkeys {
 		    } else if (null !== val.text) {
 		        ret += util.getParam(val.text);
                     } else if (0 < val.child.length) {
-		        
-                    }
+                        let chd_val = this.m_cnfgen.objval(val);
+			ret += chd_val.substring(1, chd_val.length-1);
+                    } else if (0 < Object.keys(val.attrs).length) {
+			ret += this.m_cnfgen.objval(val);
+		    }
                 } else {
                     ret += util.getParam(val);
                 }

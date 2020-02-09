@@ -7,6 +7,7 @@
 const Base    = require('../base/BaseGen.js');
 const Declare = require('../base/Declare.js');
 const Config  = require('./Config.js');
+const util    = require('../../util.js');
 
 module.exports = class extends Base {
     
@@ -44,8 +45,12 @@ module.exports = class extends Base {
 		    dec.gencnf().name = prm[pidx].attrs.name;
 		}
                 
-		let tag = ("div" === prm[pidx].tag) ? "mf.class.Component" : prm[pidx].tag;
-	        dec.value("new " + tag + "();");
+		let tag = ("div" === prm[pidx].tag) ? "mofron.class.Component" : prm[pidx].tag;
+		if (null !== prm[pidx].text) {
+                    dec.value("new " + tag + "("+ util.getParam(prm[pidx].text) +");");
+		} else {
+	            dec.value("new " + tag + "();");
+		}
 	        prm[pidx].name = dec.name();
                 
                 buf = dec.toScript();

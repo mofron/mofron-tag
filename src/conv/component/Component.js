@@ -88,7 +88,6 @@ module.exports = class extends Base {
             for (let chd_idx in prm.child) {
                 this.config(prm.child[chd_idx]);
 	    }
-            //let Config = this.gencnf().config;
 	    let buf = new Config(prm, { defidt:0 }).toScript();
             this.add(buf.substring(0, buf.length-1));
 	} catch (e) {

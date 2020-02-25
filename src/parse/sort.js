@@ -34,7 +34,9 @@ let sort = (cmp) => {
                 /* this child is attrs, move to attrs */
 		sort(cmp.child[chd_idx]);
                 if (undefined !== cmp.attrs[chd_tag]) {
-                    cmp.attrs[chd_tag] = [cmp.attrs[chd_tag]];
+		    if (false === Array.isArray(cmp.attrs[chd_tag])) {
+                        cmp.attrs[chd_tag] = [cmp.attrs[chd_tag]];
+		    }
 		    cmp.attrs[chd_tag].push(cmp.child[chd_idx]);
 		} else {
                     cmp.attrs[chd_tag] = cmp.child[chd_idx];

@@ -78,11 +78,6 @@ module.exports = class extends Base {
         try {
             let ret = "";
             
-            /* set short form parameter */
-            //if (null !== prm.text) {
-	    //    ret += "config:" + util.getParam(prm.text) + ",";
-	    //}
-            
 	    let buf = null;
 	    let atr = null;
 	    for (let aidx in prm.attrs) {
@@ -98,10 +93,23 @@ module.exports = class extends Base {
                 ret += aidx + ":";
                 
 		/* set value */
-                if ( ("object" === typeof atr) && (false === Array.isArray(atr))) {
-		    ret += this.objval(atr);
-                } else {
-                    ret += util.getParam(atr);
+                if (false === Array.isArray(atr)) {
+		    if ("object" === typeof atr) {
+                        ret += this.objval(atr);
+		    } else {
+                        ret += util.getParam(atr);
+		    }
+		} else {
+		    ret += "[";
+		    for (let aidx in atr) {
+                        if ("object" === typeof atr[aidx]) {
+                            ret += this.objval(atr[aidx]);
+			} else {
+                            ret += util.getParam(atr[aidx]);
+			}
+			ret += ",";
+		    }
+		    ret = ret.substring(0, ret.length-1) + "]";
 		}
 		ret += ",";
 	    }

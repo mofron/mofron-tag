@@ -5,8 +5,6 @@
  * @author simparts
  */
 const Base    = require('../base/BaseGen.js');
-const Declare = require('../base/Declare.js');
-const Config  = require('./Config.js');
 const util    = require('../../util.js');
 
 module.exports = class extends Base {
@@ -17,10 +15,13 @@ module.exports = class extends Base {
             
             /* default config */
             this.gencnf().comment = "component";
-            this.gencnf().config  = Config;
 
             /* set config */
             this.gencnf(cnf);
+
+	    if (undefined !== prm) {
+	        this.load();
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -29,20 +30,16 @@ module.exports = class extends Base {
     
     declare (prm, bsnm) {
         try {
-            let dec = new Declare("", { defidt:0 });
-            if (undefined !== bsnm) {
-	        dec.gencnf().bsnm = bsnm;
-            } else if (undefined !== this.gencnf().bsnm) {
-                dec.gencnf().bsnm = this.gencnf().bsnm;
-	    } else {
-                dec.gencnf().bsnm = "cmp";
-	    }
-
-	    let buf = "";
 	    for (let pidx in prm) {
-                
+                let dec = new global.gen.Declare("");
+	        let buf = "";
+
 	        if (undefined !== prm[pidx].attrs.name) {
 		    dec.gencnf().name = prm[pidx].attrs.name;
+		} else if (undefined !== prm[pidx].name) {
+                    dec.gencnf().name = prm[pidx].name;
+		} else {
+                    dec.gencnf().name = global.req.getType(prm[pidx].tag) + global.mod.count++;
 		}
                 
 		let tag = ("div" === prm[pidx].tag) ? "mofron.class.Component" : prm[pidx].tag;
@@ -53,11 +50,11 @@ module.exports = class extends Base {
 		}
 	        prm[pidx].name = dec.name();
                 
-                buf = dec.toScript();
-	        this.add(buf.substring(0, buf.length-1));
-                
 		/* child component declare */
-                this.declare(prm[pidx].child, prm[pidx].name + "_")
+		if (0 !== prm[pidx].child.length) {
+                    this.declare(prm[pidx].child, prm[pidx].name + "_");
+		}
+                global.mod.dec.push(dec.toScript());
 	    }
 	} catch (e) {
             console.error(e.stack);
@@ -76,7 +73,7 @@ module.exports = class extends Base {
                 buf += prm.child[chd_idx].name + ",";
 	    }
 	    buf = buf.substring(0, buf.length-1);
-	    this.add(prm.name + ".child([" + buf + "]);");
+	    global.mod.child.push("    " + buf);
 	} catch (e) {
             console.error(e.stack);
 	    throw e;
@@ -88,15 +85,15 @@ module.exports = class extends Base {
             for (let chd_idx in prm.child) {
                 this.config(prm.child[chd_idx]);
 	    }
-	    let buf = new Config(prm, { defidt:0 }).toScript();
-            this.add(buf.substring(0, buf.length-1));
+	    let buf = new global.gen.Config(prm, { defidt:0 }).toScript();
+	    global.mod.conf.push("    " + buf);
 	} catch (e) {
             console.error(e.stack);
 	    throw e;
 	}
     }
 
-    toScript () {
+    load () {
         try {
 	    super.toScript();
             let prm = this.param();
@@ -105,19 +102,38 @@ module.exports = class extends Base {
 	    this.declare(prm);
             
 	    for (let pidx in prm) {
-	        
                 /* child */
                 this.child(prm[pidx]);
 		
 	        /* config */
 		this.config(prm[pidx]);
             }
-	    
-            return this.m_script;
         } catch (e) {
             console.error(e.stack);
             throw e;
         }
+    }
+
+    toScript () {
+        try {
+	    let ret = "";
+            for (let didx in global.mod.dec) {
+                ret += global.mod.dec[didx];
+            }
+
+	    for (let chd_idx in global.mod.child) {
+                ret += global.mod.child[chd_idx];
+	    }
+
+	    for (let cnf_idx in global.mod.conf) {
+                ret += global.mod.conf[cnf_idx]
+	    }
+
+	    return ret;
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
     }
 }
 /* end of file */

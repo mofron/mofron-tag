@@ -109,6 +109,22 @@ try {
 		    } else if ("ModValue" === prm.constructor.name) {
 		        ret += "new " + prm.name() + "(" + thisobj.getParam(prm.value()) + ")";
                         //console.log("this is module value");
+		    } else if (true === global.req.isExists(prm.tag)) {
+		        /* declare component */
+		        if (true === global.req.isExists(prm.parent.tag)) {
+			    prm.name = prm.parent.name + "_" + prm.parent.ac_cnt++;
+			} else {
+                            prm.name = prm.parent.parent.name + "_" + prm.parent.tag + prm.parent.parent.ac_cnt++;
+			}
+                        new global.gen.Module([prm]);
+                        ret = prm.name;
+		    } else {
+                        /* key-value object */
+			ret += "{";
+			for (let pidx in prm) {
+                            ret += pidx + ":" + thisobj.getParam(prm[pidx]);
+			}
+			ret += "}";
 		    }
 		} else {
 		    ret += prm;
@@ -118,7 +134,43 @@ try {
                 console.error(e.stack);
                 throw e;
             }
-        }
+        },
+	isCompTag: (prm) => {
+            try {
+                if (undefined === prm.tag) {
+                    return false;
+		} else if (undefined === prm.attrs) {
+                    return false;
+		} else if (undefined === prm.child) {
+                    return false;
+		} else if (undefined === prm.text) {
+                    return false;
+		}
+                
+		if (false === global.req.isExists(prm.tag)) {
+                    return false;
+		}
+		return true;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+	    }
+	},
+	isObjType: (prm, onm) => {
+            try {
+                if ("object" !== typeof prm) {
+                    return false;
+		} else if (true === Array.isArray(prm)) {
+                    return false;
+		} else if (onm !== prm.constructor.name) {
+                    return false;
+		}
+		return true;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+	}
     }
     module.exports = thisobj;
 } catch (e) {

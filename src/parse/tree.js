@@ -9,7 +9,7 @@ const util  = require('../util.js');
 /**
  * build tag tree object
  */
-let tree = (prm) => {
+let tree = (prm, pnt) => {
     try {
         let ret = [];
         for (let pidx in prm) {
@@ -17,6 +17,7 @@ let tree = (prm) => {
                  continue;
              }
              let buf   = {};
+	     //buf.name  = null;
              buf.tag   = util.getCamel(prm[pidx].tagName);
              
 	     /*** set attributes ***/
@@ -47,6 +48,7 @@ let tree = (prm) => {
 		 }
 	     }
              buf.child  = [];
+	     buf.ac_cnt = 0;  // count of child in attrs 
              
              /* get text */
              buf.text   = null;
@@ -72,11 +74,13 @@ let tree = (prm) => {
                      
                  }
              }
-             
-             if (0 !== prm[pidx].childNodes.length) {
-                 buf.child = tree(prm[pidx].childNodes);
-             }
+	     buf.parent = (undefined === pnt) ? null : pnt;
              ret.push(buf);
+             if (0 !== prm[pidx].childNodes.length) {
+	         let prm_pnt = ret[ret.length-1];
+                 buf.child = tree(prm[pidx].childNodes, prm_pnt);
+             }
+             //ret.push(buf);
         }
         
         return ret;

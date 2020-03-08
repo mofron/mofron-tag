@@ -50,7 +50,6 @@ module.exports = class extends Base {
     toScript () {
         try {
             let val  = this.value();
-            
             if ((undefined === val) || ("" === val)) {
                 throw new Error('null value');
             }

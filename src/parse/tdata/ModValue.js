@@ -1,10 +1,11 @@
 /**
  * @file ./perser/ModValue.js
  * @brief module value object
- * @author simparts
+ * @license MIT
  */
+const ConfArg = require("./ConfArg.js");
 
-module.exports = class ModValue {
+module.exports = class ModValue extends ConfArg {
     
     constructor (nm, prm) {
         try {
@@ -27,25 +28,14 @@ module.exports = class ModValue {
 	        return this.m_name;
             }
 	    /* setter */
+	    if ("string" !== typeof prm) {
+                throw new Error("invalid parameter");
+	    }
             this.m_name = prm;
 	} catch (e) {
             console.error(e.stack);
             throw e;
         }
-    }
-
-    value (prm) {
-        try {
-            if (undefined === prm) {
-                /* getter */
-		return this.m_value;
-	    }
-	    /* setter */
-	    this.m_value = prm;
-	} catch (e) {
-	    console.error(e.stack);
-            throw e;
-	}
     }
 }
 /* end of file */

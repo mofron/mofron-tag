@@ -41,6 +41,13 @@ module.exports = class extends Base {
 	    if ( ("ConfArg" === prm.constructor.name) ||
 	         ("ModValue" === prm.constructor.name) ) {
                 return util.getParam(prm);
+	    } else if ("FuncList" === prm.constructor.name) {
+                let fnc_vals = prm.value();
+                for (let fidx in fnc_vals) {
+		    let add_cnf = prm.tag().name + ".config({" + prm.attrName() + ":" + util.getParam(fnc_vals[fidx]) + "});";
+		    global.mod.conf.push("    " + add_cnf + "\n");
+		}
+		return;
 	    } else if (0 < prm.child.length) {
                 ret += (1 < prm.child.length) ? "[" : "";
 		for (let cidx in prm.child) {
@@ -62,11 +69,6 @@ module.exports = class extends Base {
                 return "{" + this.cnfcode(prm) + "}";
 	    }
             
-	    /* option parameter */
-            if (0 < Object.keys(prm.attrs).length) {
-		ret = "[" + ret + ",{" + this.cnfcode(prm) + "}]";
-	    }
-            
 	    return ret;
 	} catch (e) {
             console.error(e.stack);
@@ -77,10 +79,11 @@ module.exports = class extends Base {
     cnfcode (prm) {
         try {
             let ret = "";
-            
 	    let buf = null;
 	    let atr = null;
+	    let val = "";
 	    for (let aidx in prm.attrs) {
+	        //val = "";
                 atr = prm.attrs[aidx];
                 
                 buf = new Spkeys(this).toScript(aidx, atr);
@@ -90,28 +93,32 @@ module.exports = class extends Base {
 		}
 
 	        /* set key */
-                ret += aidx + ":";
+                //ret += aidx + ":";
                 
 		/* set value */
                 if (false === Array.isArray(atr)) {
 		    if ("object" === typeof atr) {
-                        ret += this.objval(atr);
+                        val = this.objval(atr);
 		    } else {
-                        ret += util.getParam(atr);
+                        val = util.getParam(atr);
 		    }
 		} else {
-		    ret += "[";
+		    val = "[";
 		    for (let aidx in atr) {
                         if ("object" === typeof atr[aidx]) {
-                            ret += this.objval(atr[aidx]);
+                            val += this.objval(atr[aidx]);
 			} else {
-                            ret += util.getParam(atr[aidx]);
+                            val += util.getParam(atr[aidx]);
 			}
-			ret += ",";
+			val += ",";
 		    }
-		    ret = ret.substring(0, ret.length-1) + "]";
+		    val = ret.substring(0, ret.length-1) + "]";
 		}
-		ret += ",";
+		/* set key value */
+		if (undefined === val) {
+                    continue;
+		}
+		ret += aidx + ":" + val + ",";
 	    }
 	    
 	    return ret.substring(0, ret.length-1);

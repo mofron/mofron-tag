@@ -6,8 +6,8 @@
  */
 const Base      = require('./base/BaseGen.js');
 const Declare   = require('./base/Declare.js');
-const Component = require('./component/Component.js');
-const Config    = require('./component/Config.js');
+const Component = require('./module/Module.js');
+const Config    = require('./module/Config.js');
 
 class TmplOpt extends Config {
     getParam (prm, po) {

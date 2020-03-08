@@ -98,5 +98,35 @@ module.exports = class Require {
 	    throw e;
 	}
     }
+
+    getType (prm) {
+        try {
+            if (false === this.isExists(prm)) {
+                throw new Error(prm+' is not exists');
+	    }
+	    let mod     = this.module();
+	    let sp_load = null;
+	    for (let midx in mod) {
+	        if (prm !== mod[midx].text) {
+                    continue;
+		}
+	        sp_load = mod[midx].attrs.load.split('-');
+		if (3 !== sp_load.length) {
+                    continue;
+		}
+		let type = sp_load[1];
+		if ("comp" === type) {
+                    return "cmp";
+		} else if ("event" === type) {
+                    return "evt";
+		} else if ("effect" === type) {
+                    return "eff";
+		}
+	    }
+	} catch (e) {
+            console.error(e.stack);
+	    throw e;
+	}
+    }
 }
 /* end of file */

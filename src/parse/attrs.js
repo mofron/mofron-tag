@@ -4,7 +4,7 @@
  * @author simparts
  */
 const util = require('../util.js');
-const ConfArg = require('./ConfArg.js');
+const ConfArg = require('./tdata/ConfArg.js');
 
 let thisobj = null;
 let is_harf = (prm) => {

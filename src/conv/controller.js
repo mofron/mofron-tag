@@ -2,11 +2,18 @@
  * @file ./conv/ctrl.js
  * @brief converter controller
  */
-const Require   = require('./Require.js');
-const Access    = require('./Access.js');
-const Component = require('./component/Component.js');
-const Template  = require('./Template.js');
-const Script    = require('./Script.js');
+const Require  = require('./Require.js');
+const Access   = require('./Access.js');
+const Template = require('./Template.js');
+const Script   = require('./Script.js');
+
+global.req  = null;
+global.gen  = {
+    Declare: require('./base/Declare.js'),
+    Module: require('./module/Module.js'),
+    Config: require('./module/Config.js')
+}
+global.mod = { dec: [], conf: [], child: [], count: 0 };
 
 /**
  * convert parsed object to script string
@@ -14,6 +21,7 @@ const Script    = require('./Script.js');
 module.exports = (prs) => {
     try {
         /* require */
+	global.req = prs.require;
         let ret = new Require(prs.require.module()).toScript();
         ret += "const comutl=mofron.util.common;\n";
 	ret += "const cmputl=mofron.util.component;\n";
@@ -33,12 +41,11 @@ module.exports = (prs) => {
         ret += "\n" + new Template(prs.template).toScript();
         
 	/* component */
-        ret += "\n" + new Component(prs.component).toScript();
+        ret += "\n" + new global.gen.Module(prs.component).toScript();
         
         /* script (before) */
 	scp.gencnf().type = "before";
         ret += "\n" + scp.toScript();
-        //ret += "\n" + new Script(prs.script, {type: "before"}).toScript();
         
 	ret += "\n    /* start visible */\n";
 	ret += "    let root_cmp = new mofron.class.Component([";
@@ -49,22 +56,9 @@ module.exports = (prs) => {
 
 	scp.gencnf().type = "after";
 	ret += "    root_cmp.visible(true,() => {try{\n\n" + scp.toScript();
-	//let sp_scp = scp.toScript().split("\n");
-	//console.log(sp_scp);
-	//for (let sp_idx in sp_scp) {
-        //    ret += "    " + sp_scp[sp_idx] + "\n";
-	//}
 	ret += "\n    }catch(e){console.error(e.stack);}});\n";
         ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
 
-	//ret += "    " + prs.component[(prs.component.length)-1].name + ".visible(true";
-        
-        
-	//scp.gencnf().type = "after";
-        //ret += ",() => {try{\n\n" + scp.toScript();
-	//ret += "\n    }catch(e){console.error(e.stack);}});\n";
-        //ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
-        
 	return ret;
     } catch (e) {
         console.error(e.stack);

@@ -32,8 +32,11 @@ module.exports = (prs) => {
 	    ret += new Access(prs.access).toScript();
         }
         
-        /* script (init[default]) */
 	let scp = new Script(prs.script);
+        /* script (external) */
+        ret += "\n" + scp.toScript("external");
+
+        /* script (init) */
 	scp.gencnf().type = "init";
 	ret += "\n" + scp.toScript();
         

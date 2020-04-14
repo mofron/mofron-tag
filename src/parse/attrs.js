@@ -94,6 +94,12 @@ try {
 		if ( ("string" === typeof val) &&
 		     (-1 !== val.indexOf(',')) &&
 		     ( !(('(' === val[0]) && (')' === val[val.length-1])) && !(('[' === val[0]) && (']' === val[val.length-1])) ) ) {
+                    
+                    let chk_mod = val.split(':');
+		    if ((2 === chk_mod.length) && (chk_mod[0][0] === chk_mod[0][0].toUpperCase())) {
+                        return val;
+		    }
+                    
 		    /* check short form style confarg */
                     let sp_val = val.split(',');
 		    let hrf    = false;

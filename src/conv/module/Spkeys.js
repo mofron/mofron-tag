@@ -30,7 +30,7 @@ module.exports = class Spkeys {
     style (key, val) {
         try {
             let ret = key + ":";
-            let txt2array = (txt) => {
+            let txt2kv = (txt) => {
                 try {
                     let ret = "{";
                     /* format string */
@@ -64,11 +64,16 @@ module.exports = class Spkeys {
                     throw e;
                 }
             };
+
             if ("string" === typeof val) {
-                ret += txt2array(val);
+                ret += txt2kv(val);
+	    } else if ( ("object" === typeof val) &&
+	                (false === Array.isArray(val)) &&
+	                ("ConfArg" === val.constructor.name) ) {
+	        ret += "new mofron.class.ConfArg(" + txt2kv(val.value()[0]) + "," + util.kv2txt(val.value()[1]) + ")";
             } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) ) {
-                let buf = txt2array(val.text);
+                let buf = txt2kv(val.text);
                 val.text = null;
                 if (0 < Object.keys(val.attrs).length) {
                     buf = "[" + sty_buf + ",{" + this.m_cnfgen.optcode(val) + "}]";
@@ -191,13 +196,7 @@ module.exports = class Spkeys {
 	    let ret  = "";
             if ("pull" === type) {
                 ret += "new mofron.class.PullConf({";
-		ret += this.m_cnfgen.cnfcode(val);
-		if (0 < val.child.length) {
-                    ret += "child:" + this.m_cnfgen.objval(val);
-		}
-                //if ( ("object" === typeof val) && (false === Array.isArray(val)) ) {
-                //    ret += this.m_cnfgen.objval(val);
-                //}
+                ret += new global.gen.Config().cnfcode({ attrs: val });
                 ret += "})";
             } else if ("args" === type) {
                 ret += "new mofron.class.ConfArg(";

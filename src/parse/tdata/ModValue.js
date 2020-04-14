@@ -9,12 +9,13 @@ module.exports = class ModValue extends ConfArg {
     
     constructor (nm, prm) {
         try {
+	    super(prm);
+
             if (undefined === nm) {
                 throw new Error('invalid parameter');
 	    }
 
 	    this.name(nm);
-	    this.value((undefined === prm) ? '' : prm);
 	} catch (e) {
             console.error(e.stack);
 	    throw e;

@@ -16,9 +16,8 @@ let tree = (prm, pnt) => {
              if (undefined === prm[pidx].tagName) {
                  continue;
              }
-             let buf   = {};
-	     //buf.name  = null;
-             buf.tag   = util.getCamel(prm[pidx].tagName);
+             let buf = {};
+             buf.tag = util.getCamel(prm[pidx].tagName);
              
 	     /*** set attributes ***/
 	     buf.attrs = {};
@@ -47,8 +46,8 @@ let tree = (prm, pnt) => {
 		     }
 		 }
 	     }
-             buf.child  = [];
-	     buf.ac_cnt = 0;  // count of child in attrs 
+             buf.child   = [];
+	     buf.cmp_cnt = 0;  // count of child in attrs 
              
              /* get text */
              buf.text   = null;
@@ -66,7 +65,13 @@ let tree = (prm, pnt) => {
                      }
                      if ("" !== set_txt) {
 		         if ("script" === prm[pidx].tagName) {
-                             buf.text = set_txt;
+                             buf.text = prm[pidx].childNodes[0].toString();
+			     if ("\n" === buf.text[0]) {
+			         buf.text = buf.text.substring(1);
+			     }
+			     if ("\n" === buf.text[buf.text.length-1]) {
+                                 buf.text = buf.text.substring(0, buf.text.length-1);
+			     }
 			 } else {
                              buf.text = attrs.rawval2type(set_txt);
 			 }
@@ -80,7 +85,6 @@ let tree = (prm, pnt) => {
 	         let prm_pnt = ret[ret.length-1];
                  buf.child = tree(prm[pidx].childNodes, prm_pnt);
              }
-             //ret.push(buf);
         }
         
         return ret;

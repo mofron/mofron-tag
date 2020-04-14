@@ -78,6 +78,21 @@ module.exports = class Require {
 	}
     }
 
+    repsep (prm) {
+        try {
+	    for (let sidx in this.m_separate) {
+                if (prm.name() === this.m_separate[sidx].text) {
+                    this.m_separate[sidx] = prm;
+		    return;
+		}
+	    }
+            throw new Error("could not find seperate");
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
+    }
+
     isExists (tag) {
         try {
 	    let mod = this.module();

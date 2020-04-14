@@ -30,7 +30,10 @@ try {
             try {
                 if ('string' !== typeof str) {
                     return false;
-                }
+                } else if ('-' === str[0]) {
+                    str = str.substring(1);
+		}
+
                 let chk = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
                 let num = false;
                 for (let sidx=0;sidx < str.length; sidx++) {
@@ -77,6 +80,19 @@ try {
                 throw e;
             }
         },
+
+	kv2txt: (prm) => {
+            try {
+	        let ret = "{";
+                for (let key in prm) {
+                    ret += "'" + key + "':" + thisobj.getParam(prm[key]) + ",";
+		}
+		return ret.substring(0,ret.length-1) + "}";
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+	},
         
         getParam: (prm) => {
             try {
@@ -88,14 +104,16 @@ try {
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("string" === typeof prm) {
-                    if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
+                    if (true === global.req.isExists(prm)) {
+                        ret += "new " + prm + "()";
+                    } else if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
                         ret += prm;
 		    } else if ("@" === prm[0]) {
                         ret += prm.substr(1);
 		    } else if ( ("true" === prm) || ("false" === prm) || ("null" === prm) ) {
 		        ret += prm;
 		    } else {
-                        ret += ("@" === prm[0]) ? prm.substr(1) :  '"' + prm + '"';
+                        ret += '"' + prm + '"';
 		    }
 		} else if ("object" === typeof prm) {
 		    if ("ConfArg" === prm.constructor.name) {
@@ -106,23 +124,17 @@ try {
                         }
                         ret = ret.substring(0, ret.length-1);
 		        return ret + ")";
-		    } else if ("ModValue" === prm.constructor.name) {
-		        ret += "new " + prm.name() + "(" + thisobj.getParam(prm.value()) + ")";
-                        //console.log("this is module value");
-		    } else if (true === global.req.isExists(prm.tag)) {
-		        /* declare component */
-		        if (true === global.req.isExists(prm.parent.tag)) {
-			    prm.name = prm.parent.name + "_" + prm.parent.ac_cnt++;
-			} else {
-                            prm.name = prm.parent.parent.name + "_" + prm.parent.tag + prm.parent.parent.ac_cnt++;
-			}
-                        new global.gen.Module([prm]);
-                        ret = prm.name;
 		    } else {
                         /* key-value object */
 			ret += "{";
 			for (let pidx in prm) {
-                            ret += pidx + ":" + thisobj.getParam(prm[pidx]);
+                            
+			    ret += pidx + ":";
+                            if (("string" === typeof prm[pidx]) && ("@" !== prm[pidx][0]) && (1 !== prm[pidx].split("@").length)) {
+                                ret += str2dict(prm[pidx]);
+			    } else {
+                                ret += thisobj.getParam(prm[pidx]);
+			    }
 			}
 			ret += "}";
 		    }
@@ -135,7 +147,20 @@ try {
                 throw e;
             }
         },
-	isCompTag: (prm) => {
+        
+	getParentComp: (prm) =>{
+            try {
+                if (undefined === prm.parent["name"]) {
+                    return thisobj.getParentComp(prm.parent);
+		}
+		return prm.parent;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+	    }
+	},
+
+	isModTag: (prm) => {
             try {
                 if (undefined === prm.tag) {
                     return false;
@@ -176,5 +201,20 @@ try {
 } catch (e) {
     console.error(e.stack);
     throw e;
+}
+
+let str2dict = (prm) => {
+    try {
+        let sp_kv  = null;
+        let sp_mlt = prm.split(",");
+        if (1 === sp_mlt.length) {
+            sp_kv = prm.split("@");
+	    return "{'" + sp_kv[0] + "':" + thisobj.getParam(sp_kv[1]) + "}";
+	} else {
+	}
+    } catch (e) {
+        console.error(e.stack);
+        throw e;
+    }
 }
 /* end of file */

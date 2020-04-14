@@ -8,6 +8,8 @@ const Parser = require('./src/parse/Parser.js');
 const sort = require('./src/parse/sort.js');
 const mfconverter = require('./src/conv/controller.js');
 
+global.Parse = Parser;
+
 let exec_load = (src) => {
     try {
         return new Promise(resolve => {

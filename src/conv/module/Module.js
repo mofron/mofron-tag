@@ -28,32 +28,45 @@ module.exports = class extends Base {
         }
     }
     
-    declare (prm, bsnm) {
+    declare (prm, bsnm, chd) {
         try {
 	    for (let pidx in prm) {
                 let dec = new global.gen.Declare("");
 	        let buf = "";
-
+                
 	        if (undefined !== prm[pidx].attrs.name) {
 		    dec.gencnf().name = prm[pidx].attrs.name;
 		} else if (undefined !== prm[pidx].name) {
                     dec.gencnf().name = prm[pidx].name;
+		} else if (undefined !== bsnm) {
+		    dec.gencnf().name = bsnm + prm[pidx].parent.cmp_cnt++;
 		} else {
-                    dec.gencnf().name = global.req.getType(prm[pidx].tag) + global.mod.count++;
+		    let set_name = ("div" === prm[pidx].tag) ? "cmp" : global.req.getType(prm[pidx].tag);
+                    dec.gencnf().name = set_name + global.mod.count++;
 		}
                 
-		let tag = ("div" === prm[pidx].tag) ? "mofron.class.Component" : prm[pidx].tag;
+		let tag     = ("div" === prm[pidx].tag) ? "mofron.class.Component" : prm[pidx].tag;
+		let set_val = "new " + tag + "(";
 		if (null !== prm[pidx].text) {
-                    dec.value("new " + tag + "("+ util.getParam(prm[pidx].text) +");");
-		} else {
-	            dec.value("new " + tag + "();");
+		    if ( ("object" === typeof prm[pidx].text) &&
+		         ("ConfArg" === prm[pidx].text.constructor.name) ) {
+                        let cnf_val = prm[pidx].text.value();
+			for (let cv_idx in cnf_val) {
+                            set_val += util.getParam(cnf_val[cv_idx]) + ",";
+			}
+			set_val = set_val.substring(0, set_val.length-1);
+                    } else {
+                        set_val += util.getParam(prm[pidx].text)
+		    }
 		}
+                dec.value(set_val + ");");
 	        prm[pidx].name = dec.name();
                 
 		/* child component declare */
 		if (0 !== prm[pidx].child.length) {
-                    this.declare(prm[pidx].child, prm[pidx].name + "_");
+                    this.declare(prm[pidx].child, prm[pidx].name + "_", true);
 		}
+
                 global.mod.dec.push(dec.toScript());
 	    }
 	} catch (e) {
@@ -67,13 +80,13 @@ module.exports = class extends Base {
             if (0 === prm.child.length) {
                 return;
 	    }
-	    let buf = "";
+	    let ret = prm.name + ".child([";
 	    for (let chd_idx in prm.child) {
                 this.child(prm.child[chd_idx]);
-                buf += prm.child[chd_idx].name + ",";
+                ret += prm.child[chd_idx].name + ",";
 	    }
-	    buf = buf.substring(0, buf.length-1);
-	    global.mod.child.push("    " + buf);
+	    ret = ret.substring(0, ret.length-1);
+	    global.mod.child.unshift("    " + ret + "]);\n");
 	} catch (e) {
             console.error(e.stack);
 	    throw e;
@@ -86,7 +99,9 @@ module.exports = class extends Base {
                 this.config(prm.child[chd_idx]);
 	    }
 	    let buf = new global.gen.Config(prm, { defidt:0 }).toScript();
-	    global.mod.conf.push("    " + buf);
+	    if (-1 === buf.indexOf(".config({});")) {
+                global.mod.conf.push("    " + buf);
+	    }
 	} catch (e) {
             console.error(e.stack);
 	    throw e;

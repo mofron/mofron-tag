@@ -4,11 +4,14 @@
  *        read tag file, sort some objects for converver
  * @author simparts
  */
-const fs = require('fs')
+const fs          = require('fs')
+const minify      = require('minify');
+const tryToCatch  = require('try-to-catch');
 const html_parser = require('node-html-parser');
-const Require = require('./Require.js');
-const mftree = require('./tree.js');
-const util = require('../util.js');
+const Require     = require('./Require.js');
+const mftree      = require('./tree.js');
+const util        = require('../util.js');
+const Separate    = require('./tdata/Separate.js');
 
 module.exports = class {
     
@@ -21,23 +24,106 @@ module.exports = class {
 	}
     }
 
-    getReturn () {
+    getret () {
         return this.m_return;
+    }
+
+    searchsep (sep_nm, comp) {
+        try {
+	    if (undefined === comp) {
+	        comp = this.m_return.component;
+	    }
+            for (let cidx in comp) {
+                if (sep_nm === comp[cidx].tag) {
+		    return comp[cidx];
+		}
+		let ret = this.searchsep(sep_nm, comp[cidx].child);
+		if (undefined !== ret) {
+                    return ret;
+		}
+	    }
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
+    }
+
+    repsep (sep_nm, sep_cmp) {
+        try {
+            let tgt = this.searchsep(sep_nm);
+	    let rep_tgt = null;
+	    if (null === tgt.parent) {
+                rep_tgt = this.getret().component;
+	    } else {
+	        rep_tgt = tgt.parent.child;
+		for (let sep_idx in sep_cmp) {
+                   sep_cmp[sep_idx].parent = tgt.parent;
+		}
+	    }
+
+	    /* replace */
+	    for (let ridx in rep_tgt) {
+                if (sep_nm === rep_tgt[ridx].tag) {
+                    rep_tgt.splice(parseInt(ridx),1);
+		    for (let sidx in sep_cmp) {
+                        rep_tgt.splice(parseInt(ridx), 0, sep_cmp[sidx]);
+		    }
+		}
+	    }
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
     }
     
     async parse () {
         try {
             this.m_return = this.convprs(this.m_tagtxt);
+	    let prs_obj   = this;
 	    /* load mofron tag contents that are separated file */
             let sep = this.m_return.require.separate();
 	    for (let sidx in sep) {
-                await this.separate(sep[sidx]);
+                await this.separate(sep[sidx]).then(
+                    result => {
+		        try {
+		            /* add module */
+                            let mod = result.require.module();
+                            for (let midx in mod) {
+                                prs_obj.getret().require.module(mod[midx]);
+                            }
+                            /* add template */
+                            for (let tidx in result.template) {
+                                prs_obj.getret().template.push(result.template[tidx]);
+                            }
+                            /* add script */
+                            for (let scp_idx in result.script) {
+			        if ("external" === result.script[scp_idx].attrs.run) {
+				    /* set parent */
+				    result.script[scp_idx].parent = prs_obj.searchsep(sep[sidx].text);
+				}
+                                prs_obj.getret().script.push(result.script[scp_idx]);
+                            }
+                            /* replace separated components */
+			    prs_obj.repsep(sep[sidx].text, result.component);
+                        } catch (e) {
+                            console.error(e.stack);
+	                    throw e;
+			}
+		    }
+		);
 	    }
             /* load script contents that are separated file */
 	    for (let sidx in this.m_return.script) {
 	        let scp = this.m_return.script[sidx];
 	        if (undefined !== scp.attrs.src) {
-	            await this.loadScript(scp);
+		    if (true === util.isComment(scp.attrs.src)) {
+		        scp.attrs.src = scp.attrs.src.substring(1, scp.attrs.src.length-1);
+                    }
+		    const [error, data] = await tryToCatch(minify, scp.attrs.src.substring(1, scp.attrs.src.length-1));
+		    if (error) {
+                        throw new Error(error);
+		    }
+		    scp.text = data;
 		} 
             }
             return this.m_return;
@@ -66,85 +152,21 @@ module.exports = class {
 	}
     }
     
-    loadScript (scp) {
-        try {
-	    return new Promise(resolve => {
-                try {
-		    let src = scp.attrs.src;
-		    if (undefined === src) {
-                        resolve();
-                    }
-		    let path = process.cwd() + '/' + src.substring(1, src.length-1);
-                    fs.readFile(
-		        path, 'utf8',
-		        (err, cnt) => {
-                            try {
-                                if (undefined === cnt) {
-                                    throw new Error("load script is failed:" + path);
-				}
-				let sp_cnt = cnt.split('\n');
-				let txt    =  "";
-				for (let sp_idx in sp_cnt) {
-                                    txt += sp_cnt[sp_idx];
-				}
-				scp.text = txt;
-				resolve();
-	                    } catch (e) {
-                                console.error(e.stack);
-	                        throw e;
-                            }
-			}
-		    );
-		} catch (e) {
-                    console.error(e.stack);
-		    throw e;
-		}
-	    });
-	} catch (e) {
-            console.error(e.stack);
-	    throw e;
-	}
-    }
-
     separate (elm) {
         try {
 	    let fpath = elm.attrs.load;
             if (true === util.isComment(fpath)) {
                 fpath = fpath.substring(1, fpath.length-1);
             }
-            let thisobj = this;
+            let prs_obj = this;
 	    return new Promise(resolve => {
-                fs.readFile(src, 'utf8',
+                fs.readFile(fpath, 'utf8',
                     (err,tag) => {
                         try {
                             if (undefined === tag) {
                                 throw new Error("read file is failed:" + src);
                             }
-                            let prs = thisobj.convprs(tag);
-                            let ret_obj = thisobj.getReturn();
-                            /* add modules */
-                            let mod = prs.require.module();
-                            for (let midx in mod) {
-                                ret_obj.require.module(mod[midx]);
-                            }
-                            /* add template */
-                            for (let tidx in prs.template) {
-                                ret_obj.template.push(prs.template[tidx]);
-                            }
-                            /* add script */
-                            for (let sidx in prs.script) {
-                                ret_obj.script.push(prs.script[sidx]);
-                            }
-                            /* add component */
-                            thisobj.repcomp(elm.text, ret_obj.component, prs.component);
-                            
-                            /* load contents that are separated file */
-                            let sep = prs.require.separate();
-                            for (let sidx in sep) {
-                                thisobj.separate(sep[sidx]);
-                            }
-                            resolve();
-                            //resolve(new Parser(tag).parse());
+                            resolve(new global.Parse(tag).parse());
                         } catch (e) {
                             console.error(e.stack);
                             throw e;
@@ -189,7 +211,7 @@ module.exports = class {
                     ret.component.push(prs_ret[pidx]);
                 }
             }
-            
+
 	    return ret;
 	} catch (e) {
 	    console.error(e.stack);

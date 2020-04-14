@@ -38,9 +38,20 @@ module.exports = class extends Base {
     objval (prm) {
         try {
 	    let ret = "";
-	    if ( ("ConfArg" === prm.constructor.name) ||
-	         ("ModValue" === prm.constructor.name) ) {
+	    if ("ConfArg" === prm.constructor.name) {
                 return util.getParam(prm);
+            } else if ("ModValue" === prm.constructor.name) {
+	        ret += "new " + prm.name() + "(";
+                if ("ConfArg" === prm.value().constructor.name) {
+                    let prm_val = prm.value().value();
+                    for (let pv_idx in prm_val) {
+                        ret += util.getParam(prm_val[pv_idx]) + ",";
+		    }
+		    ret = ret.substring(0, ret.length-1);
+		} else {
+                    ret += util.getParam(prm.value());
+		}
+                ret += ")";
 	    } else if ("FuncList" === prm.constructor.name) {
                 let fnc_vals = prm.value();
                 for (let fidx in fnc_vals) {
@@ -48,19 +59,11 @@ module.exports = class extends Base {
 		    global.mod.conf.push("    " + add_cnf + "\n");
 		}
 		return;
-	    } else if (0 < prm.child.length) {
-                ret += (1 < prm.child.length) ? "[" : "";
-		for (let cidx in prm.child) {
-		    ret += "new " + prm.child[cidx].tag + "({";
-                    if (null !== prm.child[cidx].text) {
-		        ret += "config:" + util.getParam(prm.child[cidx].text) + ",";
-                    }
-		    ret += this.child(prm.child[cidx]);
-		    ret += this.cnfcode(prm.child[cidx])
-		    ret += "}),";
-		}
-		ret = ret.substring(0, ret.length-1);
-		ret += (1 < prm.child.length) ? "]" : "";
+	    } else if (true === global.req.isExists(prm.tag)) {
+                let pnt_cmp = util.getParentComp(prm);
+                prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
+                new global.gen.Module([prm]);
+		return prm.name;
 	    } else if (null !== prm.text) {
 	        /* exp. style tag */
                 ret += util.getParam(prm.text);
@@ -68,7 +71,6 @@ module.exports = class extends Base {
 	    } else if (0 < Object.keys(prm.attrs).length) {
                 return "{" + this.cnfcode(prm) + "}";
 	    }
-            
 	    return ret;
 	} catch (e) {
             console.error(e.stack);
@@ -92,9 +94,6 @@ module.exports = class extends Base {
                     continue;
 		}
 
-	        /* set key */
-                //ret += aidx + ":";
-                
 		/* set value */
                 if (false === Array.isArray(atr)) {
 		    if ("object" === typeof atr) {
@@ -112,7 +111,7 @@ module.exports = class extends Base {
 			}
 			val += ",";
 		    }
-		    val = ret.substring(0, ret.length-1) + "]";
+		    val = val.substring(0, val.length-1) + "]";
 		}
 		/* set key value */
 		if (undefined === val) {
@@ -131,6 +130,7 @@ module.exports = class extends Base {
     toScript () {
         try {
 	    let prm = this.param();
+            
             this.add(prm.name + ".config({" + this.cnfcode(prm) + "});");
 
             return this.m_script;

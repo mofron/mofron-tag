@@ -9,7 +9,7 @@ const attrs    = require('./attrs.js');
 const util     = require('../util.js');
 
 let req = null;
-let sort = (cmp) => {
+let child = (cmp) => {
     try {
         /* check attrs value */
 	for (let aidx in cmp.attrs) {
@@ -28,25 +28,31 @@ let sort = (cmp) => {
 		cmp.attrs[aidx] = new Module(mod_nm, mod_val);
 	    }
 	}
-
+        
         for (let chd_idx=0; chd_idx < cmp.child.length ; chd_idx++) {
-
 	    /* check child tag name */
 	    let chd_tag = cmp.child[chd_idx].tag;
 	    if ( (false === req.isExists(chd_tag)) && ("div" !== chd_tag) ) {
                 /* this child is attrs, move to attrs */
-		sort(cmp.child[chd_idx]);
+                child(cmp.child[chd_idx]);
                 let set_val = null;
 		if (null !== cmp.child[chd_idx].text) {
 		    set_val = cmp.child[chd_idx].text;
-		} else if (null !== cmp.child[chd_idx].child) {
+		} else if (1 === cmp.child[chd_idx].child.length) {
+		    set_val = cmp.child[chd_idx].child[0];
+		} else if (1 < cmp.child[chd_idx].child.length) {
                     set_val = cmp.child[chd_idx].child;
 		} else {
-                    throw new Error("unknown data type");
+		    set_val = null;
 		}
+
                 
 		if (0 !== Object.keys(cmp.child[chd_idx].attrs).length) {
-                    set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
+		    if (null === set_val) {
+                        set_val = cmp.child[chd_idx].attrs;
+		    } else {
+                        set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
+		    }
 		}
                 
 		let tag_atr = cmp.attrs[chd_tag];
@@ -62,14 +68,14 @@ let sort = (cmp) => {
                     if (true === is_redund(cmp,chd_tag)) {
                         cmp.attrs[chd_tag] = new FuncList(set_val,cmp,chd_tag);
 		    } else {
-                        cmp.attrs[chd_tag] = set_val;
+			cmp.attrs[chd_tag] = set_val;
 		    }
 		}
-
+                
                 cmp.child.splice(chd_idx, 1);
 		chd_idx--;
             } else {
-	        sort(cmp.child[chd_idx]);
+	        child(cmp.child[chd_idx]);
             }
         }
     } catch (e) {
@@ -87,21 +93,26 @@ let is_redund = (cmp,aidx) => {
                 hit++;
             }
 	}
-	return (0 < hit) ? true : false;
+	return (1 < hit) ? true : false;
     } catch (e) {
         console.error(e.stack);
         throw e;
     }
 };
 
+
+let parse = null;
 module.exports = (prm) => {
     try {
+        parse = prm;
         req = prm.require;
+	/* sort component children */
 	for (let cidx in prm.component) {
-            sort(prm.component[cidx]);
+            child(prm.component[cidx]);
 	}
+	/* sort template children */
 	for (let tidx in prm.template) {
-            sort(prm.template[tidx]);
+            child(prm.template[tidx]);
 	}
     } catch (e) {
         console.error(e.stack);

@@ -65,7 +65,7 @@ module.exports = class extends Base {
         try {
 	    super.toScript();
             let prm = this.param();
-            
+
 	    for (let chd_idx in prm.child) {
 	        let chd = prm.child[chd_idx];
                 this.add("if(true===" + this.access(chd) + "){");

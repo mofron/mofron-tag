@@ -124,6 +124,12 @@ try {
                         }
                         ret = ret.substring(0, ret.length-1);
 		        return ret + ")";
+		    } else if (true === global.req.isExists(prm.tag)) {
+		        /* module object */
+			let pnt_cmp = thisobj.getParentComp(prm);
+			prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
+	                new global.gen.Module([prm]);
+	                return prm.name;
 		    } else {
                         /* key-value object */
 			ret += "{";

@@ -21,15 +21,15 @@ global.mod = { dec: [], conf: [], child: [], count: 0 };
 module.exports = (prs) => {
     try {
         /* require */
-	global.req = prs.require;
-        let ret = new Require(prs.require.module()).toScript();
+	global.req = prs.setting.require;
+        let ret = new Require(prs.setting.require.module()).toScript();
         ret += "const comutl=mofron.util.common;\n";
 	ret += "const cmputl=mofron.util.component;\n";
         ret += "try {\n";
         
         /* access */
-	if (null !== prs.access) {
-	    ret += new Access(prs.access).toScript();
+	if (null !== prs.setting.access) {
+	    ret += new Access(prs.setting.access).toScript();
         }
         
 	let scp = new Script(prs.script);

@@ -21,31 +21,19 @@ let tree = (prm, pnt) => {
              
 	     /*** set attributes ***/
 	     buf.attrs = {};
-             if (':' === prm[pidx].rawAttrs[0]) {
-                 /* pull config */
-	         let sp_idx = prm[pidx].rawAttrs.indexOf(' ');
-	         if (-1 === sp_idx) {
-		     buf.tag += prm[pidx].rawAttrs;
+
+	     /* convert to array if attrs is overrided */
+	     let set_atr = attrs.rawtxt2kv(prm[pidx].rawAttrs);
+	     for (let set_idx in set_atr) {
+                 if (undefined !== buf.attrs[set_idx]) {
+                     if (false === Array.isArray(buf.attrs[set_idx])) {
+                         buf.attrs[set_idx] = [buf.attrs[set_idx]];
+                     }
+                     buf.attrs[set_idx].push(set_atr[set_idx]);
 		 } else {
-                     buf.tag += prm[pidx].rawAttrs.substring(0,sp_idx);
-                     buf.attrs = attrs.rawtxt2kv(
-		                     prm[pidx].rawAttrs.substring(sp_idx+1)
-				 );
+                     buf.attrs[set_idx] = set_atr[set_idx];
 		 }
-             } else {
-	         /* convert to array if attrs is overrided */
-	         let set_atr = attrs.rawtxt2kv(prm[pidx].rawAttrs);
-		 for (let set_idx in set_atr) {
-                     if (undefined !== buf.attrs[set_idx]) {
-                         if (false === Array.isArray(buf.attrs[set_idx])) {
-                             buf.attrs[set_idx] = [buf.attrs[set_idx]];
-			 }
-			 buf.attrs[set_idx].push(set_atr[set_idx]);
-		     } else {
-                         buf.attrs[set_idx] = set_atr[set_idx];
-		     }
-		 }
-	     }
+             }
              buf.child   = [];
 	     buf.cmp_cnt = 0;  // count of child in attrs 
              
@@ -79,6 +67,7 @@ let tree = (prm, pnt) => {
                      
                  }
              }
+
 	     buf.parent = (undefined === pnt) ? null : pnt;
              ret.push(buf);
              if (0 !== prm[pidx].childNodes.length) {

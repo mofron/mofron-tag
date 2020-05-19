@@ -9,6 +9,8 @@ const sort = require('./src/parse/sort.js');
 const mfconverter = require('./src/conv/controller.js');
 
 global.Parse = Parser;
+global.parse = null;
+global.load  = 0;
 
 let exec_load = (src) => {
     try {
@@ -40,12 +42,10 @@ let exec = async () => {
 	let mof = null
         await exec_load(
 	    (3 > process.argv.length) ? './index.mof' : process.argv[2]
-	).then(
-	    result => { mof = result; }
 	);
-        sort(mof);
+	await sort(global.parse);
 
-	let js = mfconverter(mof);
+	let js = mfconverter(global.parse);
         
 	/* write converted js code */
 	if (4 > process.argv.length) {
@@ -61,6 +61,5 @@ let exec = async () => {
 	throw e;
     }
 };
-
 exec();
 /* end of file */

@@ -57,6 +57,11 @@ module.exports = class Require {
 		return this.m_module;
 	    }
 	    /* setter */
+	    for (let midx in this.m_module) {
+                if (prm.attrs.load === this.m_module[midx].attrs.load) {
+                    return;
+		}
+	    }
 	    this.m_module.push(prm);
 	} catch (e) {
             console.error(e.stack);

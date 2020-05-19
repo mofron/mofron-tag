@@ -60,10 +60,7 @@ module.exports = class extends Base {
 		}
 		return;
 	    } else if (true === global.req.isExists(prm.tag)) {
-                let pnt_cmp = util.getParentComp(prm);
-                prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
-                new global.gen.Module([prm]);
-		return prm.name;
+	        return util.getParam(prm);
 	    } else if (null !== prm.text) {
 	        /* exp. style tag */
                 ret += util.getParam(prm.text);
@@ -84,9 +81,12 @@ module.exports = class extends Base {
 	    let buf = null;
 	    let atr = null;
 	    let val = "";
+//console.log(prm);
+
 	    for (let aidx in prm.attrs) {
 	        //val = "";
                 atr = prm.attrs[aidx];
+		//console.log(prm.attrs);
                 
                 buf = new Spkeys(this).toScript(aidx, atr);
 		if (null !== buf) {

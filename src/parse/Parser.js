@@ -80,38 +80,6 @@ module.exports = class {
         try {
             this.m_return = this.convprs(this.m_tagtxt);
 	    let prs_obj   = this;
-	    /* load mofron tag contents that are separated file */
-            let sep = this.m_return.require.separate();
-	    for (let sidx in sep) {
-                await this.separate(sep[sidx]).then(
-                    result => {
-		        try {
-		            /* add module */
-                            let mod = result.require.module();
-                            for (let midx in mod) {
-                                prs_obj.getret().require.module(mod[midx]);
-                            }
-                            /* add template */
-                            for (let tidx in result.template) {
-                                prs_obj.getret().template.push(result.template[tidx]);
-                            }
-                            /* add script */
-                            for (let scp_idx in result.script) {
-			        if ("external" === result.script[scp_idx].attrs.run) {
-				    /* set parent */
-				    result.script[scp_idx].parent = prs_obj.searchsep(sep[sidx].text);
-				}
-                                prs_obj.getret().script.push(result.script[scp_idx]);
-                            }
-                            /* replace separated components */
-			    prs_obj.repsep(sep[sidx].text, result.component);
-                        } catch (e) {
-                            console.error(e.stack);
-	                    throw e;
-			}
-		    }
-		);
-	    }
             /* load script contents that are separated file */
 	    for (let sidx in this.m_return.script) {
 	        let scp = this.m_return.script[sidx];
@@ -119,14 +87,54 @@ module.exports = class {
 		    if (true === util.isComment(scp.attrs.src)) {
 		        scp.attrs.src = scp.attrs.src.substring(1, scp.attrs.src.length-1);
                     }
-		    const [error, data] = await tryToCatch(minify, scp.attrs.src.substring(1, scp.attrs.src.length-1));
+		    const [error, data] = await tryToCatch(minify, scp.attrs.src);
 		    if (error) {
                         throw new Error(error);
 		    }
 		    scp.text = data;
 		} 
             }
+
+            /* set gloabal area */
+
+            if (null === global.parse) {
+                global.parse = this.m_return;
+	    } else {
+                this.addResult();
+	    }
+
             return this.m_return;
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
+    }
+
+    addResult () {
+        try {
+            /* add module */
+            let mod = this.m_return.setting.require.module();
+            for (let midx in mod) {
+                global.parse.setting.require.module(mod[midx]);
+            }
+            
+            /* add template */
+	    let tmpl = this.m_return.setting.template;
+            for (let tidx in tmpl) {
+	        global.parse.template.push(tmpl[tidx]);
+            }
+            
+            /* add script */
+            let scp = this.m_return.script;
+            for (let sidx in scp) {
+                //if ("external" === result.script[scp_idx].attrs.run) {
+                //    /* set parent */
+                //    result.script[scp_idx].parent = prs_obj.searchsep(sep[sidx].text);
+                //}
+		global.parse.script.push(scp[sidx]);
+            }
+            /* replace separated components */
+            //prs_obj.repsep(sep[sidx].text, result.component);
 	} catch (e) {
             console.error(e.stack);
             throw e;
@@ -185,8 +193,7 @@ module.exports = class {
     convprs (prm) {
         try {
             let ret = {
-                 require   : new Require(),
-		 access    : null,
+                 setting   : { require: new Require(), access: null },
 		 template  : [],
 		 script    : [],
 		 component : []
@@ -198,19 +205,25 @@ module.exports = class {
 
 	    /* set return contents */
 	    for (let pidx in prs_ret) {
-	        if ('require' === prs_ret[pidx].tag) {
+	        if ("setting" === prs_ret[pidx].tag) {
 		    for (let chd_idx in prs_ret[pidx].child) {
-		        ret.require.add(prs_ret[pidx].child[chd_idx]);
+		        if ("tag" === prs_ret[pidx].child[chd_idx].tag) {
+                            ret.setting.require.add(prs_ret[pidx].child[chd_idx]);
+			} else if ("accessStyle" === prs_ret[pidx].child[chd_idx].tag) {
+                            ret.setting.access = prs_ret[pidx].child[chd_idx];
+			}
 		    }
-		} else if ( ('script' === prs_ret[pidx].tag) ||
-		            ('template' === prs_ret[pidx].tag) ) {
+		} else if ( ("script" === prs_ret[pidx].tag) ||
+		            ("template" === prs_ret[pidx].tag) ) {
                     ret[prs_ret[pidx].tag].push(prs_ret[pidx]);
-		} else if ('accessStyle' === prs_ret[pidx].tag) {
-		    ret.access = prs_ret[pidx];
+		//} else if ("accessStyle" === prs_ret[pidx].tag) {
+		//    ret.access = prs_ret[pidx];
 		} else {
                     ret.component.push(prs_ret[pidx]);
                 }
             }
+
+            
 
 	    return ret;
 	} catch (e) {

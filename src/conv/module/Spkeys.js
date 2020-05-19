@@ -117,31 +117,28 @@ module.exports = class Spkeys {
     
     theme (key, val) {
         try {
-            if ( ("object" !== typeof val)      ||
-                 (false !== Array.isArray(val)) ||
-                 (0 === val.child.length) ) {
-                throw new Error(key);
-            }
+	    val = (false === Array.isArray(val)) ? [val] : val;
             let ret = key + ":{";
-            let chd_elm = null;
-            for (let chd_idx in val.child) {
-                chd_elm = val.child[chd_idx];
-                ret += chd_elm.tag + ":";
-                if (undefined === chd_elm.attrs.replace) {
-                    /* replace type is option */
-                    ret += "{" + this.m_cnfgen.optcode(chd_elm) + "}";
-                } else if (1 === Object.keys(val.attrs).length) {
-                    /* replace type is class */
-                    ret += val.attrs.replace;
-                } else {
-                    /* replace type is class with option */
-                    ret += "["+ val.attrs.replace+ ",";
-                    delete val.attrs.replace;
-                    ret += "{" + this.m_cnfgen.optcode(chd_elm) + "}]"
-                }
-            }
-            ret += "}";
-	    return ret;
+            
+	    for (let vidx in val) {
+	        ret += val[vidx].tag + ":{";
+		let tgt = val[vidx].tag.split(":")[1];
+
+		/* set replace target */
+                ret += "target:";
+		ret += (undefined === tgt) ? "null," : tgt + ",";
+
+		/* set theme config */
+                ret += "config:";
+                if (0 === Object.keys(val[vidx].attrs).length) {
+                    ret += "null";
+		} else {
+                    ret += "{" + new global.gen.Config().cnfcode(val[vidx]) + "}";
+		}
+		ret += "},"
+	    }
+            
+            return ret.substring(0, ret.length-1) + "}";
 	} catch (e) {
             throw e;
 	}
@@ -196,7 +193,7 @@ module.exports = class Spkeys {
 	    let ret  = "";
             if ("pull" === type) {
                 ret += "new mofron.class.PullConf({";
-                ret += new global.gen.Config().cnfcode({ attrs: val });
+                ret += new global.gen.Config().cnfcode({ attrs: val.attrs });
                 ret += "})";
             } else if ("args" === type) {
                 ret += "new mofron.class.ConfArg(";
@@ -224,8 +221,8 @@ module.exports = class Spkeys {
                 }
                 ret += ")";
             } else {
-                /* invalid type */
-                throw new Error(tgt);
+	        /* specified pull parameter */
+                ret += "new mofron.class.PullConf({" + type + ":" + util.getParam(val) + "})";
             }
 	    return ret;
 	} catch (e) {

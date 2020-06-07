@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * @file index.js
  * @brief mofron-tag command
@@ -41,7 +42,7 @@ let exec = async () => {
         /* load mofron tag */
 	let mof = null
         await exec_load(
-	    (3 > process.argv.length) ? './index.mof' : process.argv[2]
+	    (3 > process.argv.length) ? './mof/index.mf' : process.argv[2]
 	);
 	await sort(global.parse);
 

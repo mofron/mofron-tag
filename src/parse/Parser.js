@@ -127,14 +127,8 @@ module.exports = class {
             /* add script */
             let scp = this.m_return.script;
             for (let sidx in scp) {
-                //if ("external" === result.script[scp_idx].attrs.run) {
-                //    /* set parent */
-                //    result.script[scp_idx].parent = prs_obj.searchsep(sep[sidx].text);
-                //}
 		global.parse.script.push(scp[sidx]);
             }
-            /* replace separated components */
-            //prs_obj.repsep(sep[sidx].text, result.component);
 	} catch (e) {
             console.error(e.stack);
             throw e;
@@ -193,7 +187,7 @@ module.exports = class {
     convprs (prm) {
         try {
             let ret = {
-                 setting   : { require: new Require(), access: null },
+                 setting   : { require: new Require(), access: null, config: {} },
 		 template  : [],
 		 script    : [],
 		 component : []
@@ -207,24 +201,27 @@ module.exports = class {
 	    for (let pidx in prs_ret) {
 	        if ("setting" === prs_ret[pidx].tag) {
 		    for (let chd_idx in prs_ret[pidx].child) {
-		        if ("tag" === prs_ret[pidx].child[chd_idx].tag) {
-                            ret.setting.require.add(prs_ret[pidx].child[chd_idx]);
-			} else if ("accessStyle" === prs_ret[pidx].child[chd_idx].tag) {
-                            ret.setting.access = prs_ret[pidx].child[chd_idx];
+		        let chd = prs_ret[pidx].child[chd_idx];
+		        if ("tag" === chd.tag) {
+                            ret.setting.require.add(chd);
+			} else if ("accessStyle" === chd.tag) {
+                            ret.setting.access = chd;
+			} else if (("effect" === chd.tag) || ("layout" === chd.tag) || ("event" === chd.tag)) {
+			    if (undefined === ret.setting.config[chd.tag]) {
+                                ret.setting.config[chd.tag] = [];
+			    }
+			    for (let cnf_idx in chd.child) {
+			        ret.setting.config[chd.tag].push(chd.child[cnf_idx]);
+			    }
 			}
 		    }
 		} else if ( ("script" === prs_ret[pidx].tag) ||
 		            ("template" === prs_ret[pidx].tag) ) {
                     ret[prs_ret[pidx].tag].push(prs_ret[pidx]);
-		//} else if ("accessStyle" === prs_ret[pidx].tag) {
-		//    ret.access = prs_ret[pidx];
 		} else {
                     ret.component.push(prs_ret[pidx]);
                 }
             }
-
-            
-
 	    return ret;
 	} catch (e) {
 	    console.error(e.stack);

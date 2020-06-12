@@ -124,7 +124,7 @@ try {
                         }
                         ret = ret.substring(0, ret.length-1);
 		        return ret + ")";
-		    } else if (true === global.req.isExists(prm.tag)) {
+		    } else if ((true === global.req.isExists(prm.tag)) || ("div" === prm.tag)) {
 		        /* module object */
 			let pnt_cmp = thisobj.getParentComp(prm);
 			prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
@@ -178,7 +178,7 @@ try {
                     return false;
 		}
                 
-		if (false === global.req.isExists(prm.tag)) {
+		if ((false === global.req.isExists(prm.tag)) && ("div" !== prm.tag)) {
                     return false;
 		}
 		return true;

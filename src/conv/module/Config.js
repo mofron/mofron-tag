@@ -59,7 +59,7 @@ module.exports = class extends Base {
 		    global.mod.conf.push("    " + add_cnf + "\n");
 		}
 		return;
-	    } else if (true === global.req.isExists(prm.tag)) {
+	    } else if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
 	        return util.getParam(prm);
 	    } else if (null !== prm.text) {
 	        /* exp. style tag */
@@ -81,19 +81,17 @@ module.exports = class extends Base {
 	    let buf = null;
 	    let atr = null;
 	    let val = "";
-//console.log(prm);
 
 	    for (let aidx in prm.attrs) {
-	        //val = "";
                 atr = prm.attrs[aidx];
-		//console.log(prm.attrs);
-                
+
+		/* check special key */
                 buf = new Spkeys(this).toScript(aidx, atr);
 		if (null !== buf) {
 		    ret += buf;
                     continue;
 		}
-
+                
 		/* set value */
                 if (false === Array.isArray(atr)) {
 		    if ("object" === typeof atr) {
@@ -130,9 +128,7 @@ module.exports = class extends Base {
     toScript () {
         try {
 	    let prm = this.param();
-            
             this.add(prm.name + ".config({" + this.cnfcode(prm) + "});");
-
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

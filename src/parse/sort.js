@@ -56,7 +56,7 @@ let child = async (cmp) => {
 		} else {
 		    set_val = null;
 		}
-
+                
 		if ( (0 !== Object.keys(cmp.child[chd_idx].attrs).length) &&
 		     ( (1 === chd_tag.split(":").length) || ("pull" !== chd_tag.split(":")[1])) ) {
 		    if (null === set_val) {
@@ -65,9 +65,8 @@ let child = async (cmp) => {
                         set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
 		    }
 		}
-                
 		let tag_atr = cmp.attrs[chd_tag];
-
+		
                 if (undefined !== tag_atr) {
 		    if (true === util.isObjType(tag_atr,"FuncList")) {
 		        /* add function list */
@@ -83,8 +82,6 @@ let child = async (cmp) => {
 			cmp.attrs[chd_tag] = set_val;
 		    }
 		}
-		//console.log(cmp.attrs);
-                
                 cmp.child.splice(chd_idx, 1);
 		chd_idx--;
             } else {
@@ -112,7 +109,7 @@ let load = (prm,cidx) => {
                     new global.Parse(tag).parse().then(
                         parse => {
 			    for (let sidx in parse.script) {
-			        if ("external" === parse.script[sidx].attrs.run) {
+			        if ("extern" === parse.script[sidx].attrs.run) {
 	                            /* set parent */
                                     parse.script[sidx].parent = pnt.child[cidx];
 	                        }
@@ -177,6 +174,7 @@ module.exports = (prm) => {
 	    for (let tidx in prm.template) {
                 child(prm.template[tidx]);
 	    }
+
 	    if (0 === global.load) {
                 rsl();
 	    }

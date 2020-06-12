@@ -33,8 +33,8 @@ module.exports = (prs) => {
         }
         
 	let scp = new Script(prs.script);
-        /* script (external) */
-        ret += "\n" + scp.toScript("external");
+        /* script (extern) */
+        ret += "\n" + scp.toScript("extern");
 
         /* script (init) */
 	scp.gencnf().type = "init";
@@ -44,19 +44,13 @@ module.exports = (prs) => {
         ret += "\n" + new Template(prs.template).toScript();
         
 	/* component */
-        ret += "\n" + new global.gen.Module(prs.component).toScript();
+	ret += "\n" + new global.gen.Module([get_root_cmp(prs)]).toScript();
         
         /* script (before) */
 	scp.gencnf().type = "before";
         ret += "\n" + scp.toScript();
         
 	ret += "\n    /* start visible */\n";
-	ret += "    let root_cmp = new mofron.class.Component([";
-	for (let cidx in prs.component) {
-	    ret += prs.component[cidx].name + ",";
-	}
-	ret = ret.substring(0, ret.length-1) + "]);\n";
-
 	scp.gencnf().type = "after";
 	ret += "    root_cmp.visible(true,() => {try{\n\n" + scp.toScript();
 	ret += "\n    }catch(e){console.error(e.stack);}});\n";
@@ -68,4 +62,31 @@ module.exports = (prs) => {
         throw e;
     }
 }
+
+
+let get_root_cmp = (prs) => {
+    try {
+        let ret = {
+            tag: 'div', attrs: {},  cmp_cnt: 0,
+            text: null, parent: null, name: "root_cmp"
+        };
+
+        if (0 < Object.keys(prs.setting.config).length) {
+	    /* update parent */
+            for (let cnf_idx in prs.setting.config) {
+                for (let cnf_idx2 in prs.setting.config[cnf_idx]) {
+                    prs.setting.config[cnf_idx][cnf_idx2].parent = ret;
+		}
+	    }
+            ret.attrs = prs.setting.config;
+	}
+
+        ret.child = prs.component;
+        
+        return ret;
+    } catch (e) {
+        console.error(e.stack);
+        throw e;
+    }
+};
 /* end of file */

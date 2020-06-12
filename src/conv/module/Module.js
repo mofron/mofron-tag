@@ -64,7 +64,11 @@ module.exports = class extends Base {
                 
 		/* child component declare */
 		if (0 !== prm[pidx].child.length) {
-                    this.declare(prm[pidx].child, prm[pidx].name + "_", true);
+                    this.declare(
+		        prm[pidx].child,
+			("root_cmp" === prm[pidx].name) ? undefined : prm[pidx].name + "_",
+			true
+                    );
 		}
 
                 global.mod.dec.push(dec.toScript());

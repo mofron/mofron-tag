@@ -16,12 +16,14 @@ module.exports = class Spkeys {
         }
     }
     
-    param (key, val) {
+    param (val) {
         try {
             if ( ("object" !== typeof val) || (false !== Array.isArray(val)) ) {
 	        throw new Error(key);
             }
-            return this.m_cnfgen.optcode(val);
+	    let set_val = {};
+	    set_val.attrs = val;
+	    return new global.gen.Config().cnfcode(set_val);
 	} catch (e) {
 	    throw e;
 	}
@@ -236,6 +238,8 @@ module.exports = class Spkeys {
             
             if ( ("toScript" !== key) && ("function" === typeof this[key]) ) {
                 ret += this[key](key, val);
+	    } else if ("mf:param" === key) {
+                ret += this.param(val);
             } else if (2 === key.split(':').length) {
 	        let sp =  key.split(':');
 	        ret += sp[0] + ":" + this.modkey(sp[1], val);

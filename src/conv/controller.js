@@ -68,9 +68,18 @@ module.exports = (prs) => {
 let get_root_cmp = (prs) => {
     try {
         let ret = {
-            tag: 'div', attrs: prs.setting.rootConf.attrs,  cmp_cnt: 0,
+            tag: 'div',
+	    attrs: (undefined === prs.setting.rootConf.attrs) ? {} : prs.setting.rootConf.attrs,
+	    cmp_cnt: 0,
             text: null, parent: null, name: "root_cmp"
         };
+	
+	/* update parent */
+        for (let ridx in ret.attrs) {
+	    if (("object" === typeof ret.attrs[ridx]) && (undefined !== ret.attrs[ridx].parent)) {
+                ret.attrs[ridx].parent = ret;
+	    }
+        }
         ret.child = prs.component;
         return ret;
     } catch (e) {

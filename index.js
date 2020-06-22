@@ -46,7 +46,9 @@ let exec = async () => {
         await exec_load(global.mfpath);
 	await sort(global.parse.component);
         await sort(global.parse.template);
-	await sort([global.parse.setting.rootConf]);
+        if (0 < Object.keys(global.parse.setting.rootConf).length) {
+	    await sort([global.parse.setting.rootConf]);
+        }
 
 	let js = mfconverter(global.parse);
         

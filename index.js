@@ -9,9 +9,10 @@ const Parser = require('./src/parse/Parser.js');
 const sort = require('./src/parse/sort.js');
 const mfconverter = require('./src/conv/controller.js');
 
-global.Parse = Parser;
-global.parse = null;
-global.load  = 0;
+global.Parse  = Parser;
+global.parse  = null;
+global.load   = 0;
+global.mfpath = null;
 
 let exec_load = (src) => {
     try {
@@ -40,11 +41,12 @@ let exec_load = (src) => {
 let exec = async () => {
     try {
         /* load mofron tag */
-	let mof = null
-        await exec_load(
-	    (3 > process.argv.length) ? './mof/index.mf' : process.argv[2]
-	);
-	await sort(global.parse);
+	let mof = null;
+	global.mfpath = (3 > process.argv.length) ? './mof/index.mf' : process.argv[2];
+        await exec_load(global.mfpath);
+	await sort(global.parse.component);
+        await sort(global.parse.template);
+	await sort([global.parse.setting.rootConf]);
 
 	let js = mfconverter(global.parse);
         

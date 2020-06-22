@@ -2,10 +2,12 @@
  * @file sort.js
  * 
  */
-const fs = require("fs");
+const fs   = require("fs");
+const path = require('path');
 const FuncList = require('./tdata/FuncList.js');
 const Module   = require('./tdata/ModValue.js');
 const ConfArg  = require('./tdata/ConfArg.js');
+const Type     = require('./tdata/Type.js');
 const attrs    = require('./attrs.js');
 const util     = require('../util.js');
 
@@ -14,9 +16,9 @@ let child = async (cmp) => {
     try {
         /* check attrs value */
 	for (let aidx in cmp.attrs) {
-
 	    let atr_val = cmp.attrs[aidx];
-	    if (('string' !== typeof cmp.attrs[aidx]) || (-1 === atr_val.indexOf(':'))) {
+	    /* check module specified */
+	    if (('string' !== typeof atr_val) || (-1 === atr_val.indexOf(':'))) {
                 continue;
 	    }
 	    let mod_nm = atr_val.substring(0, atr_val.indexOf(':'));
@@ -30,25 +32,39 @@ let child = async (cmp) => {
 	    }
 	}
         
+        if (0 === cmp.tag.indexOf("mfLoad")) {
+	    for (let load_idx in global.parse.component) {
+                if ("mfLoad" !== global.parse.component[load_idx].tag) {
+                    continue;
+		} else if (cmp.text !== global.parse.component[load_idx].text) {
+                    continue;
+		}
+		load(cmp, load_idx);
+                break;
+	    }
+            return;
+	}
+
         for (let chd_idx=0; chd_idx < cmp.child.length ; chd_idx++) {
 	    /* check child tag name */
 	    let chd_tag = cmp.child[chd_idx].tag;
             if ( (null !== cmp.child[chd_idx].parent) &&
 	         ("theme" === cmp.child[chd_idx].parent.tag) ) {
                 continue;
-	    } else if (0 === chd_tag.indexOf("mf:load")) {
+	    } else if (0 === chd_tag.indexOf("mfLoad")) {
                 load(cmp.child[chd_idx],chd_idx);
                 continue;
+	    } else if ("mfType" === chd_tag) {
+                cmp.child[chd_idx] = new Type(cmp.child[chd_idx].text);
+		continue;
 	    }
             
 	    if ( (false === req.isExists(chd_tag)) && ("div" !== chd_tag) ) {
                 /* this child is attrs, move to attrs */
                 child(cmp.child[chd_idx]);
                 let set_val = null;
-		if ("pull" === chd_tag.split(":")[1]) {
-		    set_val = cmp.child[chd_idx];
-		} else if (null !== cmp.child[chd_idx].text) {
-		    set_val = cmp.child[chd_idx].text;
+		if (null !== cmp.child[chd_idx].text) {
+                    set_val = cmp.child[chd_idx].text;
 		} else if (1 === cmp.child[chd_idx].child.length) {
 		    set_val = cmp.child[chd_idx].child[0];
 		} else if (1 < cmp.child[chd_idx].child.length) {
@@ -57,9 +73,8 @@ let child = async (cmp) => {
 		    set_val = null;
 		}
                 
-		if ( (0 !== Object.keys(cmp.child[chd_idx].attrs).length) &&
-		     ( (1 === chd_tag.split(":").length) || ("pull" !== chd_tag.split(":")[1])) ) {
-		    if (null === set_val) {
+                if (0 !== Object.keys(cmp.child[chd_idx].attrs).length) {
+                    if (null === set_val) {
                         set_val = cmp.child[chd_idx].attrs;
 		    } else {
                         set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
@@ -100,11 +115,11 @@ let load = (prm,cidx) => {
         let pnt = prm.parent;
         global.load++;
 
-        fs.readFile(prm.text, 'utf8',
+        fs.readFile(path.dirname(global.mfpath) + "/" + prm.text, 'utf8',
             (err,tag) => {
                 try {
                     if (undefined === tag) {
-                        throw new Error("read file is failed:" + src);
+                        throw new Error("read file is failed:" + prm.text);
                     }
                     new global.Parse(tag).parse().then(
                         parse => {
@@ -115,15 +130,15 @@ let load = (prm,cidx) => {
 	                        }
 	                    }
 			    /* replace separated components */
-                            pnt.child.splice(parseInt(cidx), 1);
+			    let spl_tgt = (null !== pnt) ? pnt.child : global.parse.component;
+                            spl_tgt.splice(parseInt(cidx), 1);
                             
                             for (let rep_idx in parse.component) {
                                 /* set parent */
                                 parse.component[rep_idx].parent = pnt;
                                 child(parse.component[rep_idx]);
-                                pnt.child.splice(parseInt(cidx), 0, parse.component[rep_idx]);
+                                spl_tgt.splice(parseInt(cidx), 0, parse.component[rep_idx]);
                             }
-                            //console.log(pnt.child);
                             global.load--;
                             if (0 === global.load) {
                                 g_resolve();
@@ -158,22 +173,17 @@ let is_redund = (cmp,aidx) => {
     }
 };
 
-let g_resolve = null;
 
+let g_resolve = null;
 module.exports = (prm) => {
     try {
         return new Promise(rsl => {
             g_resolve = rsl;
 	    
-            req = prm.setting.require;
-            /* sort component children */
-	    for (let cidx in prm.component) {
-                child(prm.component[cidx]);
-	    }
-	    /* sort template children */
-	    for (let tidx in prm.template) {
-                child(prm.template[tidx]);
-	    }
+            req = global.parse.setting.require;   //prm.setting.require;
+            for (let pidx in prm) {
+                child(prm[pidx]);
+            }
 
 	    if (0 === global.load) {
                 rsl();
@@ -184,5 +194,4 @@ module.exports = (prm) => {
 	throw e;
     }
 }
-
 /* end of file */

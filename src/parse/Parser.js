@@ -94,15 +94,12 @@ module.exports = class {
 		    scp.text = data;
 		} 
             }
-
             /* set gloabal area */
-
             if (null === global.parse) {
                 global.parse = this.m_return;
 	    } else {
                 this.addResult();
 	    }
-
             return this.m_return;
 	} catch (e) {
             console.error(e.stack);
@@ -187,7 +184,7 @@ module.exports = class {
     convprs (prm) {
         try {
             let ret = {
-                 setting   : { require: new Require(), access: null, config: {} },
+                 setting   : { require: new Require(), access: null, rootConf: {} },
 		 template  : [],
 		 script    : [],
 		 component : []
@@ -206,13 +203,8 @@ module.exports = class {
                             ret.setting.require.add(chd);
 			} else if ("accessStyle" === chd.tag) {
                             ret.setting.access = chd;
-			} else if (("effect" === chd.tag) || ("layout" === chd.tag) || ("event" === chd.tag)) {
-			    if (undefined === ret.setting.config[chd.tag]) {
-                                ret.setting.config[chd.tag] = [];
-			    }
-			    for (let cnf_idx in chd.child) {
-			        ret.setting.config[chd.tag].push(chd.child[cnf_idx]);
-			    }
+                        } else if ("rootConf" === chd.tag) {
+			    ret.setting.rootConf = chd;
 			}
 		    }
 		} else if ( ("script" === prs_ret[pidx].tag) ||

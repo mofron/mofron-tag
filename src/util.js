@@ -124,6 +124,8 @@ try {
                         }
                         ret = ret.substring(0, ret.length-1);
 		        return ret + ")";
+                    } else if ("Type" === prm.constructor.name) {
+		        ret += thisobj.getParam(prm.value());
 		    } else if ((true === global.req.isExists(prm.tag)) || ("div" === prm.tag)) {
 		        /* module object */
 			let pnt_cmp = thisobj.getParentComp(prm);
@@ -134,14 +136,15 @@ try {
                         /* key-value object */
 			ret += "{";
 			for (let pidx in prm) {
-                            
 			    ret += pidx + ":";
                             if (("string" === typeof prm[pidx]) && ("@" !== prm[pidx][0]) && (1 !== prm[pidx].split("@").length)) {
                                 ret += str2dict(prm[pidx]);
 			    } else {
                                 ret += thisobj.getParam(prm[pidx]);
 			    }
+			    ret += ",";
 			}
+			ret = ret.substring(0, ret.length-1);
 			ret += "}";
 		    }
 		} else {

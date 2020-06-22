@@ -190,64 +190,52 @@ module.exports = class Spkeys {
     }
     
     /* modify key */
-    modkey (type, val) {
-        try {
-	    let ret  = "";
-            if ("pull" === type) {
-                ret += "new mofron.class.PullConf({";
-                ret += new global.gen.Config().cnfcode({ attrs: val.attrs });
-                ret += "})";
-            } else if ("args" === type) {
-                ret += "new mofron.class.ConfArg(";
-                if (true === Array.isArray(val)) {
-                    for (let vidx in val) {
-                        ret += util.getParam(val[vidx]) + ",";
-                    }
-                    ret = ret.substring(0, ret.length-1);
-                } else if ("object" === typeof val) {
-                    if (true === Array.isArray(val.text)) {
-		        for (let vt_idx in val.text) {
-                            ret += util.getParam(val.text[vt_idx]) + ",";
-			}
-			ret = ret.substring(0, ret.length-1);
-		    } else if (null !== val.text) {
-		        ret += util.getParam(val.text);
-                    } else if (0 < val.child.length) {
-                        let chd_val = this.m_cnfgen.objval(val);
-			ret += chd_val.substring(1, chd_val.length-1);
-                    } else if (0 < Object.keys(val.attrs).length) {
-			ret += this.m_cnfgen.objval(val);
-		    }
-                } else {
-                    ret += util.getParam(val);
-                }
-                ret += ")";
-            } else {
-	        /* specified pull parameter */
-                ret += "new mofron.class.PullConf({" + type + ":" + util.getParam(val) + "})";
-            }
-	    return ret;
-	} catch (e) {
-            throw e;
-	}
-    }
+//    modkey (type, val) {
+//        try {
+//	    let ret  = "";
+//	    if ("args" === type) {
+//                ret += "new mofron.class.ConfArg(";
+//                if (true === Array.isArray(val)) {
+//                    for (let vidx in val) {
+//                        ret += util.getParam(val[vidx]) + ",";
+//                    }
+//                    ret = ret.substring(0, ret.length-1);
+//                } else if ("object" === typeof val) {
+//                    if (true === Array.isArray(val.text)) {
+//		        for (let vt_idx in val.text) {
+//                            ret += util.getParam(val.text[vt_idx]) + ",";
+//			}
+//			ret = ret.substring(0, ret.length-1);
+//		    } else if (null !== val.text) {
+//		        ret += util.getParam(val.text);
+//                    } else if (0 < val.child.length) {
+//                        let chd_val = this.m_cnfgen.objval(val);
+//			ret += chd_val.substring(1, chd_val.length-1);
+//                    } else if (0 < Object.keys(val.attrs).length) {
+//			ret += this.m_cnfgen.objval(val);
+//		    }
+//                } else {
+//                    ret += util.getParam(val);
+//                }
+//                ret += ")";
+//            }
+//	    return ret;
+//	} catch (e) {
+//            throw e;
+//	}
+//    }
 
     toScript (key, val) {
         try {
+
             let ret = "";
             
-            if ( ("toScript" !== key) && ("function" === typeof this[key]) ) {
+            if ( ("toScript" !== key) &&
+	         ("constructor" !== key) &&
+		 ("function" === typeof this[key]) ) {
                 ret += this[key](key, val);
-	    } else if ("mf:param" === key) {
-                ret += this.param(val);
-            } else if (2 === key.split(':').length) {
-	        let sp =  key.split(':');
-	        ret += sp[0] + ":" + this.modkey(sp[1], val);
-	    } else if (2 === key.split("color").length) {
-	        ret += this.color(key, val);
-		if ("" === ret) {
-                    return null;
-		}
+	    } else if ("mfParam" === key) {
+	        ret += new global.gen.Config().cnfcode({ attrs: val });
             } else {
                 return null;
             }

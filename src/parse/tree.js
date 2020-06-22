@@ -18,7 +18,7 @@ let tree = (prm, pnt) => {
              }
              let buf = {};
              buf.tag = util.getCamel(prm[pidx].tagName);
-             
+
 	     /*** set attributes ***/
 	     buf.attrs = {};
 
@@ -74,6 +74,24 @@ let tree = (prm, pnt) => {
 	         let prm_pnt = ret[ret.length-1];
                  buf.child = tree(prm[pidx].childNodes, prm_pnt);
              }
+             
+	     if (-1 !== buf.tag.indexOf(':')) {
+                 let chd_buf = buf.child;
+		 buf.child = [];
+		 buf.child.push({
+                     tag     : buf.tag.substring(buf.tag.indexOf(':')+1),
+		     attrs   : buf.attrs,
+		     cmp_cnt : buf.cmp_cnt,
+		     text    : buf.text,
+		     child   : chd_buf,
+		     parent  : buf
+		 });
+		 buf.tag     = buf.tag.substring(0,buf.tag.indexOf(':'));
+		 buf.attrs   = {};
+		 buf.cmp_cnt = 0;
+		 buf.text    = null;
+	     }
+
         }
         
         return ret;

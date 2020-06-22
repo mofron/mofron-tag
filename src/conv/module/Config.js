@@ -61,10 +61,12 @@ module.exports = class extends Base {
 		return;
 	    } else if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
 	        return util.getParam(prm);
-	    } else if (null !== prm.text) {
+	    } else if ((null !== prm.text) && (undefined !== prm.text)) {
 	        /* exp. style tag */
                 ret += util.getParam(prm.text);
                 prm.text = null;
+            } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
+	        ret += "new mofron.class.PullConf({" + this.cnfcode({ attrs: prm.mfPull }) + "})";
 	    } else if (0 < Object.keys(prm.attrs).length) {
                 return "{" + this.cnfcode(prm) + "}";
 	    }
@@ -77,6 +79,7 @@ module.exports = class extends Base {
     
     cnfcode (prm) {
         try {
+
             let ret = "";
 	    let buf = null;
 	    let atr = null;
@@ -84,7 +87,6 @@ module.exports = class extends Base {
 
 	    for (let aidx in prm.attrs) {
                 atr = prm.attrs[aidx];
-
 		/* check special key */
                 buf = new Spkeys(this).toScript(aidx, atr);
 		if (null !== buf) {

@@ -75,23 +75,28 @@ let tree = (prm, pnt) => {
                  buf.child = tree(prm[pidx].childNodes, prm_pnt);
              }
              
-	     if (-1 !== buf.tag.indexOf(':')) {
-                 let chd_buf = buf.child;
-		 buf.child = [];
-		 buf.child.push({
-                     tag     : buf.tag.substring(buf.tag.indexOf(':')+1),
-		     attrs   : buf.attrs,
-		     cmp_cnt : buf.cmp_cnt,
-		     text    : buf.text,
-		     child   : chd_buf,
-		     parent  : buf
-		 });
-		 buf.tag     = buf.tag.substring(0,buf.tag.indexOf(':'));
-		 buf.attrs   = {};
-		 buf.cmp_cnt = 0;
-		 buf.text    = null;
+             let sp_tag = buf.tag.split(':');
+	     if (1 < sp_tag.length) {
+	         let set_buf = { attrs: buf.attrs, cmp_cnt: buf.cmp_cnt, text: buf.text, child: buf.child };
+	         let add_tgt = buf;
+                 for (let sp_idx=1; sp_idx < sp_tag.length ;sp_idx++) {
+                     add_tgt.child = [];
+		     let add       = {
+                         tag     : sp_tag[sp_idx],
+                         attrs   : set_buf.attrs,
+                         cmp_cnt : set_buf.cmp_cnt,
+                         text    : set_buf.text,
+                         child   : set_buf.child,
+                         parent  : add_tgt
+		     }
+                     add_tgt.tag     = sp_tag[sp_idx-1];
+		     add_tgt.attrs   = {};
+		     add_tgt.cmp_cnt = 0;
+		     add_tgt.text    = null;
+		     add_tgt.child.push(add);
+		     add_tgt = add;
+		 }
 	     }
-
         }
         
         return ret;

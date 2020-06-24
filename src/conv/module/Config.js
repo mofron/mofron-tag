@@ -67,8 +67,10 @@ module.exports = class extends Base {
                 prm.text = null;
             } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
 	        ret += "new mofron.class.PullConf({" + this.cnfcode({ attrs: prm.mfPull }) + "})";
-	    } else if (0 < Object.keys(prm.attrs).length) {
+	    } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
                 return "{" + this.cnfcode(prm) + "}";
+	    } else {
+                ret += util.getParam(prm)
 	    }
 	    return ret;
 	} catch (e) {
@@ -79,7 +81,6 @@ module.exports = class extends Base {
     
     cnfcode (prm) {
         try {
-
             let ret = "";
 	    let buf = null;
 	    let atr = null;

@@ -6,7 +6,6 @@
 const Base    = require('./base/BaseGen.js');
 const Declare = require('./base/Declare.js');
 const util    = require('../util.js');
-const fs      = require('fs');
 
 module.exports = class extends Base {
     

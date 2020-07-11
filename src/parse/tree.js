@@ -17,11 +17,17 @@ let tree = (prm, pnt) => {
                  continue;
              }
              let buf = {};
+
              buf.tag = util.getCamel(prm[pidx].tagName);
+             if ("@" === prm[pidx].rawAttrs[0]) {
+	         let spatr = prm[pidx].rawAttrs.split(" ");
+                 buf.tag += spatr[0];
+                 prm[pidx].rawAttrs = prm[pidx].rawAttrs.substring(spatr[0].length+1);
+	     }
 
 	     /*** set attributes ***/
 	     buf.attrs = {};
-
+             
 	     /* convert to array if attrs is overrided */
 	     let set_atr = attrs.rawtxt2kv(prm[pidx].rawAttrs);
 	     for (let set_idx in set_atr) {

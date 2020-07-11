@@ -50,7 +50,7 @@ let child = async (cmp) => {
 	    let chd_tag = cmp.child[chd_idx].tag;
             if ( (null !== cmp.child[chd_idx].parent) &&
 	         ("theme" === cmp.child[chd_idx].parent.tag) ) {
-                continue;
+//                continue;
 	    } else if (0 === chd_tag.indexOf("mfLoad")) {
                 load(cmp.child[chd_idx],chd_idx);
                 continue;
@@ -80,8 +80,8 @@ let child = async (cmp) => {
                         set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
 		    }
 		}
+                
 		let tag_atr = cmp.attrs[chd_tag];
-		
                 if (undefined !== tag_atr) {
 		    if (true === util.isObjType(tag_atr,"FuncList")) {
 		        /* add function list */
@@ -109,7 +109,6 @@ let child = async (cmp) => {
     }
 }
 
-
 let load = (prm,cidx) => {
     try {
         let pnt = prm.parent;
@@ -123,12 +122,13 @@ let load = (prm,cidx) => {
                     }
                     new global.Parse(tag).parse().then(
                         parse => {
-			    for (let sidx in parse.script) {
+       	                    for (let sidx in parse.script) {
 			        if ("extern" === parse.script[sidx].attrs.run) {
 	                            /* set parent */
                                     parse.script[sidx].parent = pnt.child[cidx];
 	                        }
 	                    }
+			    
 			    /* replace separated components */
 			    let spl_tgt = (null !== pnt) ? pnt.child : global.parse.component;
                             spl_tgt.splice(parseInt(cidx), 1);
@@ -139,6 +139,12 @@ let load = (prm,cidx) => {
                                 child(parse.component[rep_idx]);
                                 spl_tgt.splice(parseInt(cidx), 0, parse.component[rep_idx]);
                             }
+                            
+                            /* set template */
+			    for (let tmp_idx in parse.template) {
+			        global.parse.template.push(parse.template[tmp_idx]);
+			    }
+                            
                             global.load--;
                             if (0 === global.load) {
                                 g_resolve();

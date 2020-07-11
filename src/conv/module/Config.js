@@ -37,6 +37,8 @@ module.exports = class extends Base {
     
     objval (prm) {
         try {
+//console.log(prm);
+
 	    let ret = "";
 	    if ("ConfArg" === prm.constructor.name) {
                 return util.getParam(prm);
@@ -56,11 +58,18 @@ module.exports = class extends Base {
                 let fnc_vals = prm.value();
                 for (let fidx in fnc_vals) {
 		    let add_cnf = prm.tag().name + ".config({" + prm.attrName() + ":" + util.getParam(fnc_vals[fidx]) + "});";
-		    global.mod.conf.push("    " + add_cnf + "\n");
+                    this.gencnf().module.add(add_cnf);
+		    //global.mod.conf.push("    " + add_cnf + "\n");
 		}
 		return;
 	    } else if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
-	        return util.getParam(prm);
+	        /* module tag */
+		let set_mod = new global.gen.Module().toScript([prm]);
+		//console.log(set_mod);
+		this.gencnf().module.add(set_mod.substring(4, set_mod.length-1));
+                return prm.name;
+                
+	        //return util.getParam(prm);
 	    } else if ((null !== prm.text) && (undefined !== prm.text)) {
 	        /* exp. style tag */
                 ret += util.getParam(prm.text);
@@ -89,7 +98,7 @@ module.exports = class extends Base {
 	    for (let aidx in prm.attrs) {
                 atr = prm.attrs[aidx];
 		/* check special key */
-                buf = new Spkeys(this).toScript(aidx, atr);
+                buf = new Spkeys(this, prm).toScript(aidx, atr);
 		if (null !== buf) {
 		    ret += buf;
                     continue;

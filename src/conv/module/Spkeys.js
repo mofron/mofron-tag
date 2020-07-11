@@ -7,9 +7,10 @@ const util = require('../../util.js');
 
 module.exports = class Spkeys {
 
-    constructor (cnf) {
+    constructor (cnf,prm) {
         try {
 	    this.m_cnfgen = cnf;
+	    this.m_prm    = prm;
         } catch (e) {
             console.error(e.stack);
             throw e;
@@ -119,27 +120,39 @@ module.exports = class Spkeys {
     
     theme (key, val) {
         try {
-	    val = (false === Array.isArray(val)) ? [val] : val;
+            if (("object" === typeof val) && (undefined !== val.constructor) && ("ConfArg" === val.constructor.name)) {
+                return this.theme(key, val.value());
+	    }
+            val = (false === Array.isArray(val)) ? [val] : val;
             let ret = key + ":{";
             
 	    for (let vidx in val) {
-	        ret += val[vidx].tag + ":{";
-		let tgt = val[vidx].tag.split(":")[1];
-
-		/* set replace target */
-                ret += "target:";
-		ret += (undefined === tgt) ? "null," : tgt + ",";
-
-		/* set theme config */
-                ret += "config:";
-                if (0 === Object.keys(val[vidx].attrs).length) {
-                    ret += "null";
+	        let tag = null;
+	        if (undefined !== val[vidx].tag) {
+                    tag = val[vidx].tag;
 		} else {
-                    ret += "{" + new global.gen.Config().cnfcode(val[vidx]) + "}";
+                    for (let tag_idx in val[vidx]) {
+                        tag = tag_idx;
+			break;
+		    }
 		}
+	        /* set theme component name */
+                ret += tag + ":{";
+		let chk_type = (undefined !== val[vidx].attrs) ? val[vidx].attrs : val[vidx][tag];
+
+		if (undefined !== chk_type.replace) {
+		    ret += "replace:";
+                    this.m_cnfgen.gencnf().module.toScript([chk_type.replace]);
+		    ret += chk_type.replace.name
+		} else if (undefined !== chk_type.config) {
+                    ret += "config:" + util.getParam(chk_type.config);
+		} else {
+                    throw new Error("could not find theme type");
+		}
+                
 		ret += "},"
 	    }
-            
+//            
             return ret.substring(0, ret.length-1) + "}";
 	} catch (e) {
             throw e;
@@ -147,95 +160,78 @@ module.exports = class Spkeys {
     }
     
     
-    accessConfig (key, val) {
+    accessConf (val) {
         try {
-            let cnf_elm = (prm) => {
-                try {
-                    let ce_ret = "{";
-                    ce_ret += 'media:"' + prm.tag + '",';
-                    if ( (undefined !== prm.attrs.os) &&
-		         ("string" === typeof prm.attrs.os) ) {
-                        ce_ret += 'os:"' + prm.attrs.os + '",';
-			delete prm.attrs.os;
-		    }
-		    if ( (undefined !== prm.attrs.browser) &&
-		         ("string" === typeof prm.attrs.browser) ) {
-                        ce_ret += 'browser:"' + prm.attrs.browser + '",';
-			delete prm.attrs.browser;
-		    }
-		    ce_ret += "config:{" + this.m_cnfgen.cnfcode(prm) + "}";
-		    return ce_ret + "}";
-		} catch (e) {
-		    console.error(e.stack);
-                    throw e;
+	    let ret = "";
+	    if ("FuncList" === val.constructor.name) {
+                let fnc_val = val.value();
+		for (let fnc_idx in fnc_val) {
+                    ret += this.accessConf(fnc_val[fnc_idx]) + ",";
 		}
-	    };
-            let ret = key + ":[";
-            for (let atr_idx in val.attrs) {
-                
-                if (true === Array.isArray(val.attrs[atr_idx])) {
-		    for (let atr_idx2 in val.attrs[atr_idx]) {
-                        ret += cnf_elm(val.attrs[atr_idx][atr_idx2]) + ",";
-		    }
-		    ret = ret.substring(0, ret.length-1);
+		return ret.substring(0, ret.length-1);
+	    }
+            
+	    let acc = {};
+	    let cnf = {};
+	    for (let vidx in val) {
+                if ( ("orientation" === vidx) || ("device" === vidx) ||
+                     ("os" === vidx) || ("browser" === vidx) ) {
+                    acc[vidx] = val[vidx];
 		} else {
-                    ret += cnf_elm(val.attrs[atr_idx]);
+                    cnf[vidx] = val[vidx];
 		}
-            }
-            ret += "]";
-	    return ret;
+	    }
+            ret += "{config:";
+            ret += util.getParam(cnf);
+	    if (0 < Object.keys(acc).length) {
+                ret += ",access:" + util.getParam(acc);
+	    }
+            return ret + "}";
 	} catch (e) {
             throw e;
 	}
     }
     
-    /* modify key */
-//    modkey (type, val) {
-//        try {
-//	    let ret  = "";
-//	    if ("args" === type) {
-//                ret += "new mofron.class.ConfArg(";
-//                if (true === Array.isArray(val)) {
-//                    for (let vidx in val) {
-//                        ret += util.getParam(val[vidx]) + ",";
-//                    }
-//                    ret = ret.substring(0, ret.length-1);
-//                } else if ("object" === typeof val) {
-//                    if (true === Array.isArray(val.text)) {
-//		        for (let vt_idx in val.text) {
-//                            ret += util.getParam(val.text[vt_idx]) + ",";
-//			}
-//			ret = ret.substring(0, ret.length-1);
-//		    } else if (null !== val.text) {
-//		        ret += util.getParam(val.text);
-//                    } else if (0 < val.child.length) {
-//                        let chd_val = this.m_cnfgen.objval(val);
-//			ret += chd_val.substring(1, chd_val.length-1);
-//                    } else if (0 < Object.keys(val.attrs).length) {
-//			ret += this.m_cnfgen.objval(val);
-//		    }
-//                } else {
-//                    ret += util.getParam(val);
-//                }
-//                ret += ")";
-//            }
-//	    return ret;
-//	} catch (e) {
-//            throw e;
-//	}
-//    }
+    template (key, val) {
+        try {
+            if ((undefined !== val.constructor) && ("FuncList" === val.constructor.name)) {
+                let fval = val.value();
+		for (let fidx in fval) {
+                    this.template(key, fval[fidx]);
+		}
+		return "";
+	    }
+
+	    let opt = "";
+	    for (let oidx in val) {
+                if ("name" == oidx) {
+                    continue;
+		}
+		opt += '"' + oidx + '":' + util.getParam(val[oidx]) + ",";
+	    }
+            let set = this.m_prm.name + ".child("+ val.name+ "({"+ opt.substring(0,opt.length-1) +"})" +");";
+
+	    this.m_cnfgen.gencnf().module.add(set);
+	    return "";
+	} catch (e) {
+            throw e;
+	}
+    }
 
     toScript (key, val) {
         try {
 
             let ret = "";
             
-            if ( ("toScript" !== key) &&
+	    if ("accessConf" === key) {
+	        let acc_ret = this.accessConf(val);
+		return key + ":new mofron.class.ConfArg(" + acc_ret + "),";
+            } else if ( ("toScript" !== key) &&
 	         ("constructor" !== key) &&
 		 ("function" === typeof this[key]) ) {
                 ret += this[key](key, val);
 	    } else if ("mfParam" === key) {
-	        ret += new global.gen.Config().cnfcode({ attrs: val });
+	        ret += this.m_cnfgen.cnfcode({ attrs: val });
             } else {
                 return null;
             }

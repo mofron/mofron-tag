@@ -104,17 +104,7 @@ try {
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("string" === typeof prm) {
-                    if (true === global.req.isExists(prm)) {
-                        ret += "new " + prm + "()";
-                    } else if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
-                        ret += prm;
-		    } else if ("@" === prm[0]) {
-                        ret += prm.substr(1);
-		    } else if ( ("true" === prm) || ("false" === prm) || ("null" === prm) ) {
-		        ret += prm;
-		    } else {
-                        ret += '"' + prm + '"';
-		    }
+		    ret += thisobj.getStringParam(prm);
 		} else if ("object" === typeof prm) {
 		    if ("ConfArg" === prm.constructor.name) {
 		        ret += "new mofron.class.ConfArg(";
@@ -127,11 +117,12 @@ try {
                     } else if ("Type" === prm.constructor.name) {
 		        ret += thisobj.getParam(prm.value());
 		    } else if ((true === global.req.isExists(prm.tag)) || ("div" === prm.tag)) {
-		        /* module object */
-			let pnt_cmp = thisobj.getParentComp(prm);
-			prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
-	                new global.gen.Module([prm]);
-	                return prm.name;
+                        throw new Error("support is already finished");
+//		        /* module object */
+//			let pnt_cmp = thisobj.getParentComp(prm);
+//			prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
+//	                new global.gen.Module([prm]);
+//	                return prm.name;
 		    } else {
                         /* key-value object */
 			ret += "{";
@@ -156,6 +147,27 @@ try {
                 throw e;
             }
         },
+
+	getStringParam: (prm) => {
+            try {
+	        let ret = "";
+                if (true === global.req.isExists(prm)) {
+                    ret += "new " + prm + "()";
+                } else if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
+                    ret += prm;
+                } else if ("@" === prm[0]) {
+                    ret += prm.substr(1);
+                } else if ( ("true" === prm) || ("false" === prm) || ("null" === prm) ) {
+                    ret += prm;
+                } else {
+                    ret += '"' + prm + '"';
+                }
+		return ret;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+	},
         
 	getParentComp: (prm) =>{
             try {

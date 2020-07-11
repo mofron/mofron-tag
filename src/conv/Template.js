@@ -4,26 +4,15 @@
  *        this scope is declare, child, option.
  * @author simparts
  */
-const Base      = require('./base/BaseGen.js');
-const Declare   = require('./base/Declare.js');
-const Component = require('./module/Module.js');
-const Config    = require('./module/Config.js');
+const fs         = require('fs');
+const minify     = require('minify');
+const tryToCatch = require('try-to-catch');
+const Base       = require('./base/BaseGen.js');
+const Declare    = require('./base/Declare.js');
+const Module     = require('./module/Module.js');
+const Config     = require('./module/Config.js');
 
-class TmplOpt extends Config {
-    getParam (prm, po) {
-        try {
-	    if (("string" === typeof prm) && ('@' === prm[0])) {
-                prm = ('@' === prm[1]) ? prm.substr(1) : "@p." + prm.substr(1);
-	    }
-            return super.getParam(prm, po);
-	} catch (e) {
-            console.error(e.stack);
-	    throw e;
-	}
-    }
-}
-
-module.exports = class extends Base {
+module.exports = class extends Module {
     
     constructor (prm, cnf) {
         try {
@@ -36,66 +25,119 @@ module.exports = class extends Base {
         }
     }
     
+    getTemplate (prm) {
+        try {
+            let chk_cmp = prm;
+	    while (chk_cmp.parent) {
+                if ("template" === chk_cmp.parent.tag) {
+		    return chk_cmp.parent;
+                }
+		chk_cmp = chk_cmp.parent;
+	    }
+	    throw new Error("could not find template parent.'$' prefix can use only in the template tag.");
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+	}
+    }
+
+    chkParam (prm) {
+        try {
+            let chd = prm.child;
+            for (let cidx in chd) {
+                this.chkParam(chd[cidx]);
+	    }
+            
+            let conv = (c) => {
+                try {
+		    let buf = null;
+                    if ( ("string" === typeof c) && ("$" === c[0]) ) {
+		        let tmpl = this.getTemplate(prm);
+                        return "@" + tmpl.attrs.name + "_p." + c.substring(1);
+		    } else if (("object" !== typeof c) || (null === c)) {
+                        return null;
+                    } else if (true === Array.isArray(c)) {
+		        for (let arr_idx in c) {
+                            buf = conv(c[arr_tdx]);
+			    c[arr_idx] = (null !== buf) ? buf : c[arr_idx]; 
+                        }
+		    } else if (undefined !== c.constructor) {
+                        if ( ("ConfArg" === c.constructor.name) ||
+			     ("FuncList" === c.constructor.name) ||
+                             ("ModValue" === c.constructor.name) ) {
+                            let cval = c.value();
+			    for (let cval_idx in cval) {
+                                buf = conv(cval[cval_idx]);
+				cval[cval_idx] = (null !== buf) ? buf : cval[cval_idx];
+			    }
+			}
+		    } else if (undefined !== c.text) {
+                        buf = conv(c.text);
+                        c.text = (null !== buf) ? buf : c.text;
+                    }
+                    return null;
+		} catch (e) {
+                    console.error(e.stack);
+                    throw e;
+		}
+	    }
+            
+	    let cret = null;
+	    /* check attributes */
+	    for (let aidx in prm.attrs) {
+	        cret = conv(prm.attrs[aidx]);
+                if ("string" === typeof cret) {
+                    prm.attrs[aidx] = cret;
+		}
+	    }
+            /* check text */
+	    cret = conv(prm.text);
+	    if ("string" === typeof cret) {
+                prm.text = cret;
+	    }
+	} catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+
     toScript () {
         try {
-            super.toScript();
+	    let ret   = "    /* template */\n";
             let prm = this.param();
-
-
             for (let pidx in prm) {
-	        
-		let cmp = new Component(
-		                  prm[pidx].child,
-				  {
-				      comment : "template component",
-				      defidt  :2,
-				      bsnm    : prm[pidx].attrs.name,
-                                      options : TmplOpt
-				  }
-                              );
-                let tmp_val = "(p)=>{\n" + cmp.toScript();
-                //new Component(prs.component).toScript();
-	        
-                let dec_src = new Declare(
-		                  tmp_val,
-				  { name: prm[pidx].attrs.name, defidt:0 }
-			      ).toScript();
-                this.add(dec_src.substring(0,dec_src.length-2));
+                this.chkParam(prm[pidx]);
+                
+                this.add("let " + prm[pidx].attrs.name + "=("+ prm[pidx].attrs.name +"_p)=>{");
+
+                /* set name component */
+		for (let cidx in prm[pidx].child) {
+                    prm[pidx].child[cidx].name = "tpl" + cidx;
+		}
+                this.declare(prm[pidx].child);
                 
 		let ret_str = "return [";
-		for (let chd_idx in prm[pidx].child) {
-		    ret_str += prm[pidx].child[chd_idx].name + ',';
+		for (let pidx2 in prm[pidx].child) {
+                    this.child(prm[pidx].child[pidx2]);
+                    this.config(prm[pidx].child[pidx2]);
+		    ret_str += prm[pidx].child[pidx2].name + ",";
                 }
-		ret_str = ret_str.substring(0,ret_str.length-1) + "];"
-		this.add(ret_str,2);
-		this.add("};");
+                this.add(ret_str.substring(0,ret_str.length-1) + "];" + "}");
 
-
+		ret += "    ";
+		let sp_scp = this.m_script.split("\n");
+                for (let sp_idx in sp_scp) {
+		    let sp_idx2=0;
+                    for (; sp_idx2 < sp_scp[sp_idx].length ;sp_idx2++) {
+                        if (" " !== sp_scp[sp_idx][sp_idx2]) {
+                            break;
+			}
+		    }
+		    ret += sp_scp[sp_idx].substring(sp_idx2);
+		}
 	    }
 
-	    
-            
-//            /* return area */
-//            let buf = "";
-//            buf += "let set_comp=[";
-//            for (let cidx4 in cmp_lst) {
-//	        if (false === cmp_lst[cidx4].src) {
-//                    buf += cmp_lst[cidx4].name + ",";
-//		} else {
-//		    let src_cmp = cmp_lst[cidx4].child.component;
-//		    for (let cidx5 in src_cmp) {
-//                        buf += src_cmp[cidx5].name + ",";
-//                    }
-//		    buf = buf.substring(0, buf.length-1);
-//		}
-//            }
-//	    if (',' === buf[buf.length-1]) {
-//                buf = buf.substring(0, buf.length-1);
-//	    }
-//            buf += "];";
-//            this.add(buf);
-            
-            return this.m_script;
+	    return ret;
         } catch (e) {
             console.error(e.stack);
             throw e;

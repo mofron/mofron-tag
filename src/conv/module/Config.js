@@ -35,66 +35,12 @@ module.exports = class extends Base {
 	}
     }
     
-    objval (prm) {
-        try {
-//console.log(prm);
-
-	    let ret = "";
-	    if ("ConfArg" === prm.constructor.name) {
-                return util.getParam(prm);
-            } else if ("ModValue" === prm.constructor.name) {
-	        ret += "new " + prm.name() + "(";
-                if ("ConfArg" === prm.value().constructor.name) {
-                    let prm_val = prm.value().value();
-                    for (let pv_idx in prm_val) {
-                        ret += util.getParam(prm_val[pv_idx]) + ",";
-		    }
-		    ret = ret.substring(0, ret.length-1);
-		} else {
-                    ret += util.getParam(prm.value());
-		}
-                ret += ")";
-	    } else if ("FuncList" === prm.constructor.name) {
-                let fnc_vals = prm.value();
-                for (let fidx in fnc_vals) {
-		    let add_cnf = prm.tag().name + ".config({" + prm.attrName() + ":" + util.getParam(fnc_vals[fidx]) + "});";
-                    this.gencnf().module.add(add_cnf);
-		    //global.mod.conf.push("    " + add_cnf + "\n");
-		}
-		return;
-	    } else if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
-	        /* module tag */
-		let set_mod = new global.gen.Module().toScript([prm]);
-		//console.log(set_mod);
-		this.gencnf().module.add(set_mod.substring(4, set_mod.length-1));
-                return prm.name;
-                
-	        //return util.getParam(prm);
-	    } else if ((null !== prm.text) && (undefined !== prm.text)) {
-	        /* exp. style tag */
-                ret += util.getParam(prm.text);
-                prm.text = null;
-            } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
-	        ret += "new mofron.class.PullConf({" + this.cnfcode({ attrs: prm.mfPull }) + "})";
-	    } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
-                return "{" + this.cnfcode(prm) + "}";
-	    } else {
-                ret += util.getParam(prm)
-	    }
-	    return ret;
-	} catch (e) {
-            console.error(e.stack);
-            throw e;
-	}
-    }
-    
     cnfcode (prm) {
         try {
             let ret = "";
 	    let buf = null;
 	    let atr = null;
-	    let val = "";
-
+            
 	    for (let aidx in prm.attrs) {
                 atr = prm.attrs[aidx];
 		/* check special key */
@@ -103,34 +49,13 @@ module.exports = class extends Base {
 		    ret += buf;
                     continue;
 		}
-                
-		/* set value */
-                if (false === Array.isArray(atr)) {
-		    if ("object" === typeof atr) {
-                        val = this.objval(atr);
-		    } else {
-                        val = util.getParam(atr);
-		    }
-		} else {
-		    val = "[";
-		    for (let aidx in atr) {
-                        if ("object" === typeof atr[aidx]) {
-                            val += this.objval(atr[aidx]);
-			} else {
-                            val += util.getParam(atr[aidx]);
-			}
-			val += ",";
-		    }
-		    val = val.substring(0, val.length-1) + "]";
+
+		buf = util.getParam(atr,this.gencnf().module);
+		if (undefined !== buf) {
+		    ret += aidx + ":" + buf + ","
 		}
-		/* set key value */
-		if (undefined === val) {
-                    continue;
-		}
-		ret += aidx + ":" + val + ",";
 	    }
-	    
-	    return ret.substring(0, ret.length-1);
+	    return (0 === ret.length) ? ret : ret.substring(0, ret.length-1);
 	} catch (e) {
             console.error(e.stack);
 	    throw e;

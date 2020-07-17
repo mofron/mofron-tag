@@ -73,7 +73,7 @@ module.exports = class Spkeys {
 	    } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) &&
 	                ("ConfArg" === val.constructor.name) ) {
-	        ret += "new mofron.class.ConfArg(" + txt2kv(val.value()[0]) + "," + util.kv2txt(val.value()[1]) + ")";
+	        ret += "new mofron.class.ConfArg(" + txt2kv(val.value()[0]) + "," + util.getParam(val.value()[1]) + ")";
             } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) ) {
                 let buf = txt2kv(val.text);

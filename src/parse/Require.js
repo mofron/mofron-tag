@@ -141,6 +141,8 @@ module.exports = class Require {
                     return "evt";
 		} else if ("effect" === type) {
                     return "eff";
+		} else if ("layout" === type) {
+		    return "lot";
 		}
 	    }
 	} catch (e) {

@@ -81,65 +81,21 @@ try {
             }
         },
 
-	kv2txt: (prm) => {
-            try {
-	        let ret = "{";
-                for (let key in prm) {
-                    ret += "'" + key + "':" + thisobj.getParam(prm[key]) + ",";
-		}
-		return ret.substring(0,ret.length-1) + "}";
-	    } catch (e) {
-                console.error(e.stack);
-                throw e;
-            }
-	},
-        
-        getParam: (prm) => {
+        getParam: (prm, mod) => {
             try {
 	        let ret = "";
-                if (true === Array.isArray(prm)) {
+                if ("string" === typeof prm) {
+		    return thisobj.getStrParam(prm);
+		} else if (true === Array.isArray(prm)) {
                     ret += "[";
 		    for (let pidx in prm) {
-                        ret += thisobj.getParam(prm[pidx]) + ',';
+                        ret += thisobj.getParam(prm[pidx], mod) + ',';
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
-		} else if ("string" === typeof prm) {
-		    ret += thisobj.getStringParam(prm);
 		} else if ("object" === typeof prm) {
-		    if ("ConfArg" === prm.constructor.name) {
-		        ret += "new mofron.class.ConfArg(";
-                        let arg = prm.value();
-                        for (let aidx in arg) {
-                            ret += thisobj.getParam(arg[aidx]) + ",";
-                        }
-                        ret = ret.substring(0, ret.length-1);
-		        return ret + ")";
-                    } else if ("Type" === prm.constructor.name) {
-		        ret += thisobj.getParam(prm.value());
-		    } else if ((true === global.req.isExists(prm.tag)) || ("div" === prm.tag)) {
-                        throw new Error("support is already finished");
-//		        /* module object */
-//			let pnt_cmp = thisobj.getParentComp(prm);
-//			prm.name = pnt_cmp.name + "_" + pnt_cmp.cmp_cnt++;
-//	                new global.gen.Module([prm]);
-//	                return prm.name;
-		    } else {
-                        /* key-value object */
-			ret += "{";
-			for (let pidx in prm) {
-			    ret += pidx + ":";
-                            if (("string" === typeof prm[pidx]) && ("@" !== prm[pidx][0]) && (1 !== prm[pidx].split("@").length)) {
-                                ret += str2dict(prm[pidx]);
-			    } else {
-                                ret += thisobj.getParam(prm[pidx]);
-			    }
-			    ret += ",";
-			}
-			ret = ret.substring(0, ret.length-1);
-			ret += "}";
-		    }
+                    return thisobj.getObjParam(prm, mod);
 		} else {
-		    ret += prm;
+		    return "" + prm;
 		}
 		return ret;
             } catch (e) {
@@ -148,19 +104,91 @@ try {
             }
         },
 
-	getStringParam: (prm) => {
+	getStrParam: (prm) => {
             try {
-	        let ret = "";
                 if (true === global.req.isExists(prm)) {
-                    ret += "new " + prm + "()";
+                    return "new " + prm + "()";
                 } else if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
-                    ret += prm;
+                    return prm;
                 } else if ("@" === prm[0]) {
-                    ret += prm.substr(1);
+                    return  prm.substr(1);
                 } else if ( ("true" === prm) || ("false" === prm) || ("null" === prm) ) {
-                    ret += prm;
+                    return prm;
                 } else {
-                    ret += '"' + prm + '"';
+                    return  '"' + prm + '"';
+                }
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+	},
+	
+	getObjParam: (prm,mod) => {
+	    try {
+	        let ret = "";
+                if ("Object" !== prm.constructor.name) {
+		    /* class parameter */
+                    return thisobj.getClassParam(prm,mod);
+		} else if (true === thisobj.isParseTag(prm)) {
+                    if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
+                        /* user defined tag */
+                        let set_mod = new global.gen.Module().toScript([prm]);
+                        mod.add(set_mod.substring(4, set_mod.length-1));
+                        return prm.name;
+                    } else if (null !== prm.text) {
+		        throw new Error("unknown route");
+                        //ret += thisobj.getParam(prm.text);
+                        //prm.text = null;
+		    }
+                } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
+                    return "new mofron.class.PullConf(" + thisobj.getParam(prm.mfPull,mod) + ")";
+                } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
+                    return thisobj.getParam(prm.attrs,mod);
+                } else {
+		    /* key value object */
+		    let kv_ret = "";
+                    for (let pidx in prm) {
+                        kv_ret += pidx + ":" + thisobj.getParam(prm[pidx],mod) + ",";
+                    }
+		    return "{" + kv_ret.substring(0, kv_ret.length-1) + "}";
+                }
+                return ret;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+	},
+
+	getClassParam: (prm,mod) => {
+	    try {
+	        let ret = "";
+	        let cname = prm.constructor.name;
+	        if ("ConfArg" === cname) {
+                    ret += "new mofron.class.ConfArg(";
+                    let ac_val = prm.value();
+                    for (let aidx in ac_val) {
+                        ret += thisobj.getParam(ac_val[aidx], mod) + ",";
+                    }
+                    ret = ret.substring(0, ret.length-1) + ")";
+                } else if ("Type" === cname) {
+                    return thisobj.getParam(prm.value(), mod);
+                } else if ("ModValue" === cname) {
+		    ret += "new " + prm.name();
+		    let md_val = null;
+                    if ("ConfArg" === prm.value().constructor.name) {
+		        md_val = thisobj.getParam(prm.value().value());
+			md_val = md_val.substring(1,md_val.length-1);
+                    } else {
+                        md_val = thisobj.getParam(prm.value());
+                    }
+		    ret += "(" + md_val + ")";
+                } else if ("FuncList" === cname) {
+                    let fnc_vals = prm.value();
+                    for (let fidx in fnc_vals) {
+                        let add_cnf = prm.attrName() + ":" + thisobj.getParam(fnc_vals[fidx],mod);
+                        mod.add(prm.tag().name + ".config({" + add_cnf + "});");
+                    }
+                    return;
                 }
 		return ret;
 	    } catch (e) {
@@ -181,7 +209,7 @@ try {
 	    }
 	},
 
-	isModTag: (prm) => {
+	isParseTag: (prm) => {
             try {
                 if (undefined === prm.tag) {
                     return false;
@@ -190,10 +218,6 @@ try {
 		} else if (undefined === prm.child) {
                     return false;
 		} else if (undefined === prm.text) {
-                    return false;
-		}
-                
-		if ((false === global.req.isExists(prm.tag)) && ("div" !== prm.tag)) {
                     return false;
 		}
 		return true;
@@ -222,20 +246,5 @@ try {
 } catch (e) {
     console.error(e.stack);
     throw e;
-}
-
-let str2dict = (prm) => {
-    try {
-        let sp_kv  = null;
-        let sp_mlt = prm.split(",");
-        if (1 === sp_mlt.length) {
-            sp_kv = prm.split("@");
-	    return "{'" + sp_kv[0] + "':" + thisobj.getParam(sp_kv[1]) + "}";
-	} else {
-	}
-    } catch (e) {
-        console.error(e.stack);
-        throw e;
-    }
 }
 /* end of file */

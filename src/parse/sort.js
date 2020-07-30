@@ -115,12 +115,28 @@ let load = (prm,cidx) => {
         global.load++;
 
         fs.readFile(path.dirname(global.mfpath) + "/" + prm.text, 'utf8',
-            (err,tag) => {
+            (err,load_ret) => {
                 try {
-                    if (undefined === tag) {
+                    if (undefined === load_ret) {
                         throw new Error("read file is failed:" + prm.text);
                     }
-                    new global.Parse(tag).parse().then(
+		    /* replace separated components */
+                    let spl_tgt = (null !== pnt) ? pnt.child : global.parse.component;
+                    //spl_tgt.splice(parseInt(cidx), 1);
+		    
+		    if ("text" === prm.attrs.type) {
+		        spl_tgt.splice(parseInt(cidx), 1);
+		        prm.load = load_ret.substring(0, load_ret.length-1);
+			pnt.text = prm;
+		        //pnt.text = load_ret.substring(0, load_ret.length-1);
+			global.load--;
+			if (0 === global.load) {
+			    g_resolve();
+                        }
+                        return;
+		    }
+                    
+                    new global.Parse(load_ret).parse().then(
                         parse => {
        	                    for (let sidx in parse.script) {
 			        if ("extern" === parse.script[sidx].attrs.run) {
@@ -128,11 +144,8 @@ let load = (prm,cidx) => {
                                     parse.script[sidx].parent = pnt.child[cidx];
 	                        }
 	                    }
-			    
 			    /* replace separated components */
-			    let spl_tgt = (null !== pnt) ? pnt.child : global.parse.component;
                             spl_tgt.splice(parseInt(cidx), 1);
-                            
                             for (let rep_idx in parse.component) {
                                 /* set parent */
                                 parse.component[rep_idx].parent = pnt;

@@ -50,7 +50,17 @@ module.exports = class extends Base {
 			}
 			set_val = set_val.substring(0, set_val.length-1);
                     } else {
-                        set_val += util.getParam(prm[pidx].text)
+		        if (("object" === typeof prm[pidx].text) && ("mfLoad" === prm[pidx].text.tag)) {
+			    let sp_load = prm[pidx].text.load.split("\n");
+			    set_val += ("double" !== prm[pidx].text.attrs.comment) ? "'" : '"';
+			    for (let sp_idx in sp_load) {
+                                set_val += sp_load[sp_idx] + "\\n";
+			    }
+			    set_val += "'";
+                            //set_val += util.getParam(prm[pidx].text.load)
+			} else {
+                            set_val += util.getParam(prm[pidx].text)
+			}
 		    }
 		}
                 dec.value(set_val + ");");

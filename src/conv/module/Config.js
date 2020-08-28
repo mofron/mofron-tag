@@ -6,7 +6,6 @@
 const Base   = require('./../base/BaseGen.js');
 const util   = require('../../util.js');
 const Spkeys = require('./Spkeys.js');
-const style  = require('./style.js');
 
 module.exports = class extends Base {
     

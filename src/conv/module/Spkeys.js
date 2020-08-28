@@ -57,7 +57,9 @@ module.exports = class Spkeys {
                             throw new Error('invalid style');
                         }
                         buf += "'" + sp_elm[0] + "':";
-                        buf += "'" + sp_elm[1] + "',";
+                        let quot = (-1 === sp_elm[1].indexOf('"')) ? '"' : "'";
+			
+                        buf += quot + sp_elm[1] + quot + ",";
                     }
                     ret += buf.substring(0, buf.length-1) + "}";
                     
@@ -105,14 +107,6 @@ module.exports = class Spkeys {
                 return key + ":" + util.getParam(val);
 	    }
             return "";
-	} catch (e) {
-            throw e;
-	}
-    }
-    
-    name (key, val) {
-        try {
-            return "objkey:" + util.getParam(val);
 	} catch (e) {
             throw e;
 	}

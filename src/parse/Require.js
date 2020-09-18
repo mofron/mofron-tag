@@ -36,11 +36,11 @@ module.exports = class Require {
 		    chk_file = atr.load.substring(1, atr.load.length-1);
 		}
                 
-		if (true === fs.existsSync(chk_file)) {
-                    this.separate(req_elm);
-		} else {
-                    this.module(req_elm);
+                if (true === fs.existsSync(chk_file)) {
+		    let add_load = ("." === chk_file[0]) ? "." : "..";
+                    req_elm.attrs.load = add_load + chk_file;
 		}
+                this.module(req_elm);
             } else {
                 throw new Error('unknown attribute');
 	    }
@@ -69,20 +69,6 @@ module.exports = class Require {
 	}
     }
     
-    separate (prm) {
-        try {
-            if (undefined === prm) {
-                /* getter */
-		return this.m_separate;
-	    }
-	    /* setter */
-	    this.m_separate.push(prm);
-	} catch (e) {
-            console.error(e.stack);
-	    throw e;
-	}
-    }
-
     repsep (prm) {
         try {
 	    for (let sidx in this.m_separate) {
@@ -103,12 +89,6 @@ module.exports = class Require {
 	    let mod = this.module();
             for (let midx in mod) {
                 if (tag === mod[midx].text) {
-                    return true;
-		}
-	    }
-	    let sep = this.separate();
-	    for (let sidx in sep) {
-                if (tag === sep[sidx].text) {
                     return true;
 		}
 	    }

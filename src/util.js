@@ -137,11 +137,42 @@ try {
                         return prm.name;
                     } else if (null !== prm.text) {
 		        throw new Error("unknown route");
-                        //ret += thisobj.getParam(prm.text);
-                        //prm.text = null;
 		    }
                 } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
-                    return "new mofron.class.PullConf(" + thisobj.getParam(prm.mfPull,mod) + ")";
+		    ret += "new mofron.class.PullConf(";
+                    if ( (true === thisobj.isParseTag(prm.mfPull)) ||
+		         (true === Array.isArray(prm.mfPull)) && (true === thisobj.isParseTag(prm.mfPull[0])) ) {
+                        ret += "{child:"+ thisobj.getParam(prm.mfPull,mod) +"}";
+		    } else if ("ConfArg" === prm.mfPull.constructor.name) {
+		        ret += "{";
+                        let ca     = prm.mfPull.value();
+			let ca_chd = [];
+			let ca_atr = [];
+			for (let ca_idx in ca) {
+                            if (true === thisobj.isParseTag(ca[ca_idx])) {
+                                ca_chd.push(ca[ca_idx]);
+			    } else if ( (true === Array.isArray(ca[ca_idx])) &&
+			                (true === thisobj.isParseTag(ca[ca_idx][0])) ) {
+                                for (let ca_idx_2 in ca[ca_idx]) {
+                                    ca_chd.push(ca[ca_idx][ca_idx_2]);
+				}
+			    } else {
+                                ca_atr.push(ca[ca_idx]);
+			    }
+			}
+			if (0 < ca_chd.length) {
+                            ret += "child:" + thisobj.getParam(ca_chd,mod) + ",";
+			}
+
+			for (let atr_idx in ca_atr) {
+			    ret += new global.gen.Config().cnfcode({attrs:ca_atr[atr_idx]}) + ",";
+			}
+			ret = ret.substring(0, ret.length-1);
+			ret += "}";
+		    } else {
+                        ret += new global.gen.Config().cnfcode({attrs:prm.mfPull});
+		    }
+                    return ret + ")";
                 } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
                     return thisobj.getParam(prm.attrs,mod);
                 } else {

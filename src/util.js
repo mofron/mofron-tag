@@ -81,7 +81,7 @@ try {
             }
         },
 
-        getParam: (prm, mod) => {
+        getParam: (prm) => {
             try {
 	        let ret = "";
                 if ("string" === typeof prm) {
@@ -89,11 +89,11 @@ try {
 		} else if (true === Array.isArray(prm)) {
                     ret += "[";
 		    for (let pidx in prm) {
-                        ret += thisobj.getParam(prm[pidx], mod) + ',';
+                        ret += thisobj.getParam(prm[pidx]) + ',';
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("object" === typeof prm) {
-                    return thisobj.getObjParam(prm, mod);
+                    return thisobj.getObjParam(prm);
 		} else {
 		    return "" + prm;
 		}
@@ -123,17 +123,17 @@ try {
             }
 	},
 	
-	getObjParam: (prm,mod) => {
+	getObjParam: (prm) => {
 	    try {
 	        let ret = "";
                 if ("Object" !== prm.constructor.name) {
 		    /* class parameter */
-                    return thisobj.getClassParam(prm,mod);
+                    return thisobj.getClassParam(prm);
 		} else if (true === thisobj.isParseTag(prm)) {
                     if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
                         /* user defined tag */
                         let set_mod = new global.gen.Module().toScript([prm]);
-                        mod.add(set_mod.substring(4, set_mod.length-1));
+                        global.module.add(set_mod.substring(4, set_mod.length-1));
                         return prm.name;
                     } else if (null !== prm.text) {
 		        throw new Error("unknown route");
@@ -142,7 +142,7 @@ try {
 		    ret += "new mofron.class.PullConf(";
                     if ( (true === thisobj.isParseTag(prm.mfPull)) ||
 		         (true === Array.isArray(prm.mfPull)) && (true === thisobj.isParseTag(prm.mfPull[0])) ) {
-                        ret += "{child:"+ thisobj.getParam(prm.mfPull,mod) +"}";
+                        ret += "{child:"+ thisobj.getParam(prm.mfPull) +"}";
 		    } else if ("ConfArg" === prm.mfPull.constructor.name) {
 		        ret += "{";
                         let ca     = prm.mfPull.value();
@@ -161,7 +161,7 @@ try {
 			    }
 			}
 			if (0 < ca_chd.length) {
-                            ret += "child:" + thisobj.getParam(ca_chd,mod) + ",";
+                            ret += "child:" + thisobj.getParam(ca_chd) + ",";
 			}
 
 			for (let atr_idx in ca_atr) {
@@ -170,18 +170,22 @@ try {
 			ret = ret.substring(0, ret.length-1);
 			ret += "}";
 		    } else {
-                        ret += new global.gen.Config().cnfcode({attrs:prm.mfPull});
+                        ret += "{" + new global.gen.Config().cnfcode({attrs:prm.mfPull}) + "}";
 		    }
                     return ret + ")";
                 } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
-                    return thisobj.getParam(prm.attrs,mod);
+                    return thisobj.getParam(prm.attrs);
                 } else {
 		    /* key value object */
-		    let kv_ret = "";
-                    for (let pidx in prm) {
-                        kv_ret += pidx + ":" + thisobj.getParam(prm[pidx],mod) + ",";
-                    }
-		    return "{" + kv_ret.substring(0, kv_ret.length-1) + "}";
+                    if (undefined !== prm.template) {
+		        return thisobj.template(prm.template);
+                    } else {
+		        let kv_ret = "";
+                        for (let pidx in prm) {
+                            kv_ret += pidx + ":" + thisobj.getParam(prm[pidx]) + ",";
+                        }
+		        return "{" + kv_ret.substring(0, kv_ret.length-1) + "}";
+		    }
                 }
                 return ret;
 	    } catch (e) {
@@ -190,19 +194,19 @@ try {
             }
 	},
 
-	getClassParam: (prm,mod) => {
+	getClassParam: (prm) => {
 	    try {
 	        let ret = "";
 	        let cname = prm.constructor.name;
 	        if ("ConfArg" === cname) {
                     ret += "new mofron.class.ConfArg(";
-                    let ac_val = prm.value();
+		    let ac_val = prm.value();
                     for (let aidx in ac_val) {
-                        ret += thisobj.getParam(ac_val[aidx], mod) + ",";
+                        ret += thisobj.getParam(ac_val[aidx]) + ",";
                     }
                     ret = ret.substring(0, ret.length-1) + ")";
                 } else if ("Type" === cname) {
-                    return thisobj.getParam(prm.value(), mod);
+                    return thisobj.getParam(prm.value());
                 } else if ("ModValue" === cname) {
 		    ret += "new " + prm.name();
 		    let md_val = null;
@@ -216,8 +220,8 @@ try {
                 } else if ("FuncList" === cname) {
                     let fnc_vals = prm.value();
                     for (let fidx in fnc_vals) {
-                        let add_cnf = prm.attrName() + ":" + thisobj.getParam(fnc_vals[fidx],mod);
-                        mod.add(prm.tag().name + ".config({" + add_cnf + "});");
+                        let add_cnf = prm.attrName() + ":" + thisobj.getParam(fnc_vals[fidx]);
+                        global.module.add(prm.tag().name + ".config({" + add_cnf + "});");
                     }
                     return;
                 }
@@ -227,6 +231,36 @@ try {
                 throw e;
             }
 	},
+
+	template: (prm,mod) => {
+            try {
+                let ret = "";
+                if ("object" === typeof prm) {
+                    if (true === Array.isArray(prm)) {
+		        ret += "[";
+		        for (let arr in prm) {
+                            ret += thisobj.template(prm[arr]) + ",";
+			}
+			return ret.substring(0,ret.length-1) + "]";
+		    } else if (undefined === prm.name) {
+                        throw new Error("could not find name attribute at 'template' tag");
+		    }
+		    ret = prm.name + "({";
+		    for (let tidx in prm) {
+                        if ("name" === tidx) {
+                            continue;
+			}
+			ret += tidx + ":" + thisobj.getParam(prm[tidx]);
+		    }
+		    ret += "})";
+		}
+
+	        return ret;
+            } catch (e) {
+                console.error(e.stack);
+                throw e;
+            }
+        },
         
 	getParentComp: (prm) =>{
             try {

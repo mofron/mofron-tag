@@ -103,7 +103,7 @@ module.exports = class extends Module {
 
     toScript () {
         try {
-	    let ret   = "    /* template */\n";
+	    let ret = "";
             let prm = this.param();
             for (let pidx in prm) {
                 this.chkParam(prm[pidx]);
@@ -122,11 +122,13 @@ module.exports = class extends Module {
                     this.config(prm[pidx].child[pidx2]);
 		    ret_str += prm[pidx].child[pidx2].name + ",";
                 }
-                this.add(ret_str.substring(0,ret_str.length-1) + "];" + "}");
 
-		ret += "    ";
+                this.add(ret_str.substring(0,ret_str.length-1) + "];" + "};");
+
+		ret = "    ";
 		let sp_scp = this.m_script.split("\n");
                 for (let sp_idx in sp_scp) {
+
 		    let sp_idx2=0;
                     for (; sp_idx2 < sp_scp[sp_idx].length ;sp_idx2++) {
                         if (" " !== sp_scp[sp_idx][sp_idx2]) {
@@ -137,7 +139,7 @@ module.exports = class extends Module {
 		}
 	    }
 
-	    return ret;
+	    return "    /* template */\n" + ret;
         } catch (e) {
             console.error(e.stack);
             throw e;

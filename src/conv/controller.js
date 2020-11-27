@@ -15,6 +15,7 @@ global.gen  = {
     Config: require('./module/Config.js')
 }
 global.mod = { dec: [], conf: [], child: [], count: 0 };
+global.module = null;
 
 /**
  * convert parsed object to script string
@@ -36,16 +37,17 @@ module.exports = (prs) => {
 	let scp = new Script(prs.script);
         /* script (extern) */
         ret += "\n" + scp.toScript("extern");
-
+        
         /* script (init) */
 	scp.gencnf().type = "init";
 	ret += "\n" + scp.toScript();
         
         /* template */
         ret += "\n" + new Template(prs.template).toScript();
-
+        
 	/* component */
-	ret += "\n" + new global.gen.Module([get_root_cmp(prs)]).toScript();
+	global.module = new global.gen.Module([get_root_cmp(prs)]);
+	ret += "\n" + global.module.toScript();
         
         /* script (before) */
 	scp.gencnf().type = "before";

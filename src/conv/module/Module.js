@@ -57,7 +57,6 @@ module.exports = class extends Base {
                                 set_val += sp_load[sp_idx] + "\\n";
 			    }
 			    set_val += "'";
-                            //set_val += util.getParam(prm[pidx].text.load)
 			} else {
                             set_val += util.getParam(prm[pidx].text)
 			}
@@ -76,7 +75,6 @@ module.exports = class extends Base {
 		}
 		let set = dec.toScript();
                 this.add(set.substring(4, set.length-1));
-                //global.mod.dec.push(dec.toScript());
 	    }
 	} catch (e) {
             console.error(e.stack);
@@ -107,6 +105,7 @@ module.exports = class extends Base {
             for (let chd_idx in prm.child) {
                 this.config(prm.child[chd_idx]);
 	    }
+
 	    let buf = new global.gen.Config(prm, { defidt:0, module: this }).toScript();
 	    if (-1 === buf.indexOf(".config({});")) {
 	        this.add(buf.substring(0, buf.length-1));

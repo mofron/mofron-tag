@@ -42,19 +42,20 @@ module.exports = class extends Base {
             
 	    for (let aidx in prm.attrs) {
                 atr = prm.attrs[aidx];
-		/* check special key */
+                /* check special key */
                 buf = new Spkeys(this, prm).toScript(aidx, atr);
 		if (null !== buf) {
 		    ret += buf;
                     continue;
 		}
 
-		buf = util.getParam(atr,this.gencnf().module);
+		buf = util.getParam(atr);
 		if (undefined !== buf) {
 		    ret += aidx + ":" + buf + ","
 		}
 	    }
-	    return (0 === ret.length) ? ret : ret.substring(0, ret.length-1);
+
+	    return ("," === ret[ret.length-1]) ? ret.substring(0, ret.length-1) : ret;
 	} catch (e) {
             console.error(e.stack);
 	    throw e;

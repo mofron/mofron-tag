@@ -74,6 +74,7 @@ let child = async (cmp) => {
 		    set_val = null;
 		}
 
+
                 if (0 !== Object.keys(cmp.child[chd_idx].attrs).length) {
                     if (null === set_val) {
                         set_val = cmp.child[chd_idx].attrs;
@@ -81,28 +82,20 @@ let child = async (cmp) => {
                         set_val = new ConfArg([set_val, cmp.child[chd_idx].attrs]);
 		    }
 		}
-
-                /* for style tag */
-                if (("style" === chd_tag) && (true === util.isObjType(set_val,"ConfArg"))) {
-		    let sval = set_val.value();
-		    set_val  = "";
-		    for (let sidx in sval) {
-                        set_val += sval[sidx] + ",";
-		    }
-		    set_val = set_val.substring(0, set_val.length-1);
-		}
-		
 		let tag_atr = cmp.attrs[chd_tag];
                 if (undefined !== tag_atr) {
 		    if (true === util.isObjType(tag_atr,"FuncList")) {
 		        /* add function list */
 		        tag_atr.addValue(set_val);
 		    } else {
+		        if (false === Array.isArray(cmp.attrs[chd_tag])) {
+                            cmp.attrs[chd_tag] = [cmp.attrs[chd_tag]];
+			}
 		        cmp.attrs[chd_tag].push(set_val);
 		    }
 		} else {
                     /* set attrs */
-                    if (true === is_redund(cmp,chd_tag)) {
+                    if ((true === is_redund(cmp,chd_tag)) && (true === req.isExists(cmp.tag))) {
                         cmp.attrs[chd_tag] = new FuncList(set_val,cmp,chd_tag);
 		    } else {
 			cmp.attrs[chd_tag] = set_val;

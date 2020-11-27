@@ -146,7 +146,6 @@ module.exports = class Spkeys {
                 
 		ret += "},"
 	    }
-//            
             return ret.substring(0, ret.length-1) + "}";
 	} catch (e) {
             throw e;
@@ -156,11 +155,12 @@ module.exports = class Spkeys {
     
     accessConf (val) {
         try {
-	    let ret = "";
-	    if ("FuncList" === val.constructor.name) {
-                let fnc_val = val.value();
-		for (let fnc_idx in fnc_val) {
-                    ret += this.accessConf(fnc_val[fnc_idx]) + ",";
+            let ret = "";
+            if ( ('object' === typeof val) &&
+	         ('FuncList' === val.constructor.name) ) {
+                let fval = val.value();
+                for (let vidx in fval) {
+                    ret += this.accessConf(fval[vidx]) + ",";
 		}
 		return ret.substring(0, ret.length-1);
 	    }
@@ -171,16 +171,11 @@ module.exports = class Spkeys {
                 if ( ("orientation" === vidx) || ("device" === vidx) ||
                      ("os" === vidx) || ("browser" === vidx) ) {
                     acc[vidx] = val[vidx];
-		} else {
+                } else {
                     cnf[vidx] = val[vidx];
-		}
+                }
 	    }
-            ret += "{config:";
-            ret += util.getParam(cnf);
-	    if (0 < Object.keys(acc).length) {
-                ret += ",access:" + util.getParam(acc);
-	    }
-            return ret + "}";
+            return "{config:" + util.getParam(cnf) + ",access:" + util.getParam(acc) + "}";
 	} catch (e) {
             throw e;
 	}
@@ -188,24 +183,31 @@ module.exports = class Spkeys {
     
     template (key, val) {
         try {
-            if ((undefined !== val.constructor) && ("FuncList" === val.constructor.name)) {
+            if (true === Array.isArray(val)) {
+                for (let vidx in val) {
+                    this.template(key,val[vidx]);
+                }
+                return "";
+            } else if ((undefined !== val.constructor) && ("FuncList" === val.constructor.name)) {
                 let fval = val.value();
 		for (let fidx in fval) {
                     this.template(key, fval[fidx]);
 		}
 		return "";
-	    }
-
-	    let opt = "";
-	    for (let oidx in val) {
-                if ("name" == oidx) {
-                    continue;
-		}
-		opt += '"' + oidx + '":' + util.getParam(val[oidx]) + ",";
-	    }
-            let set = this.m_prm.name + ".child("+ val.name+ "({"+ opt.substring(0,opt.length-1) +"})" +");";
-
-	    this.m_cnfgen.gencnf().module.add(set);
+	    } else {
+	        let set     = "";
+	        let set_prm = "";
+                for (let vidx2 in val) {
+                    if ("name" == vidx2) {
+                        continue;
+                    }
+                    set_prm += '"' + vidx2 + '":' + util.getParam(val[vidx2]) + ",";
+                }
+                set += val.name+ "({"+ set_prm.substring(0,set_prm.length-1) + "})";
+                this.m_cnfgen.gencnf().module.add(
+                    this.m_prm.name + ".child(" + set + ");"
+                );
+            }
 	    return "";
 	} catch (e) {
             throw e;
@@ -218,8 +220,7 @@ module.exports = class Spkeys {
             let ret = "";
             
 	    if ("accessConf" === key) {
-	        let acc_ret = this.accessConf(val);
-		return key + ":new mofron.class.ConfArg(" + acc_ret + "),";
+	        ret += key + ":new mofron.class.ConfArg(" + this.accessConf(val) + ")";
             } else if ( ("toScript" !== key) &&
 	         ("constructor" !== key) &&
 		 ("function" === typeof this[key]) ) {

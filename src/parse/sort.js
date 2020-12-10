@@ -33,6 +33,7 @@ let child = async (cmp) => {
 	}
         
         if (0 === cmp.tag.indexOf("mfLoad")) {
+//console.log(cmp.tag);
 	    for (let load_idx in global.parse.component) {
                 if ("mfLoad" !== global.parse.component[load_idx].tag) {
                     continue;
@@ -60,7 +61,7 @@ let child = async (cmp) => {
 	    }
             
 	    if ( (false === req.isExists(chd_tag)) && ("div" !== chd_tag) ) {
-
+                
                 /* this child is attrs, move to attrs */
                 child(cmp.child[chd_idx]);
                 let set_val = null;
@@ -73,8 +74,7 @@ let child = async (cmp) => {
 		} else {
 		    set_val = null;
 		}
-
-
+                
                 if (0 !== Object.keys(cmp.child[chd_idx].attrs).length) {
                     if (null === set_val) {
                         set_val = cmp.child[chd_idx].attrs;
@@ -134,10 +134,10 @@ let load = (prm,cidx) => {
 			pnt.text = load_ret.substring(0, load_ret.length-1);
 			global.load--;
 			if (0 === global.load) {
-			    g_resolve();
+                            g_resolve();
                         }
                         return;
-		    }
+                    }
                     
                     new global.Parse(load_ret).parse().then(
                         parse => {
@@ -153,7 +153,7 @@ let load = (prm,cidx) => {
                                 /* set parent */
                                 parse.component[rep_idx].parent = pnt;
                                 child(parse.component[rep_idx]);
-                                spl_tgt.splice(parseInt(cidx), 0, parse.component[rep_idx]);
+                                spl_tgt.splice(parseInt(cidx) + parseInt(rep_idx), 0, parse.component[rep_idx]);
                             }
                             
                             /* set template */

@@ -136,6 +136,7 @@ module.exports = class extends Module {
 			}
 		    }
 		    ret += sp_scp[sp_idx].substring(sp_idx2);
+                    
 		}
 	    }
 

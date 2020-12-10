@@ -15,8 +15,8 @@ module.exports = class extends Base {
             if (0 === prm.child.length) {
 	        return "";
             }
-	    ret += "child:[";
-
+            ret += "child:[";
+            
 	    let elm = null;
             for (let chd_idx in prm.child) {
 	        elm = prm.child[chd_idx];
@@ -48,13 +48,17 @@ module.exports = class extends Base {
 		    ret += buf;
                     continue;
 		}
-
-		buf = util.getParam(atr);
+                
+		let utl_mod = undefined;
+		if ((undefined !== this.gencnf().module) && ('template' === this.gencnf().module.gencnf().comment)) {
+                    utl_mod = this.gencnf().module;
+		}
+		buf = util.getParam(atr,utl_mod);
 		if (undefined !== buf) {
 		    ret += aidx + ":" + buf + ","
 		}
 	    }
-
+            
 	    return ("," === ret[ret.length-1]) ? ret.substring(0, ret.length-1) : ret;
 	} catch (e) {
             console.error(e.stack);

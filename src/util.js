@@ -81,7 +81,7 @@ try {
             }
         },
 
-        getParam: (prm) => {
+        getParam: (prm,mod) => {
             try {
 	        let ret = "";
                 if ("string" === typeof prm) {
@@ -93,7 +93,7 @@ try {
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("object" === typeof prm) {
-                    return thisobj.getObjParam(prm);
+                    return thisobj.getObjParam(prm,mod);
 		} else {
 		    return "" + prm;
 		}
@@ -123,7 +123,7 @@ try {
             }
 	},
 	
-	getObjParam: (prm) => {
+	getObjParam: (prm,mod) => {
 	    try {
 	        let ret = "";
                 if ("Object" !== prm.constructor.name) {
@@ -132,8 +132,13 @@ try {
 		} else if (true === thisobj.isParseTag(prm)) {
                     if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
                         /* user defined tag */
+//console.log(prm);
                         let set_mod = new global.gen.Module().toScript([prm]);
-                        global.module.add(set_mod.substring(4, set_mod.length-1));
+			if (undefined === mod) {
+                            global.module.add(set_mod.substring(4, set_mod.length-1));
+			} else {
+                            mod.add(set_mod.substring(4, set_mod.length-1));
+			}
                         return prm.name;
                     } else if (null !== prm.text) {
 		        throw new Error("unknown route");

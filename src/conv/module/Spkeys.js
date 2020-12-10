@@ -155,26 +155,32 @@ module.exports = class Spkeys {
     
     accessConf (val) {
         try {
+            let mfacc = val.mfAccess;
             let ret = "";
-            if ( ('object' === typeof val) &&
-	         ('FuncList' === val.constructor.name) ) {
-                let fval = val.value();
-                for (let vidx in fval) {
-                    ret += this.accessConf(fval[vidx]) + ",";
+            
+            if (true === Array.isArray(mfacc)) {
+                for (let aidx in mfacc) {
+                    ret += this.accessConf({ mfAccess: mfacc[aidx]}) + ",";
 		}
 		return ret.substring(0, ret.length-1);
 	    }
-            
+
 	    let acc = {};
 	    let cnf = {};
-	    for (let vidx in val) {
-                if ( ("orientation" === vidx) || ("device" === vidx) ||
-                     ("os" === vidx) || ("browser" === vidx) ) {
-                    acc[vidx] = val[vidx];
+
+	    for (let acc_idx in mfacc) {
+                if ( ("orientation" === acc_idx) || ("device" === acc_idx) ||
+                     ("os" === acc_idx) || ("browser" === acc_idx) ) {
+		    if ("string" === typeof mfacc[acc_idx]) {
+                        acc[acc_idx] = mfacc[acc_idx];
+                    } else if ("object" === typeof mfacc[acc_idx]) {
+                        acc[acc_idx] = mfacc[acc_idx].value();
+		    }
                 } else {
-                    cnf[vidx] = val[vidx];
+                    cnf[acc_idx] = mfacc[acc_idx];
                 }
 	    }
+
             return "{config:" + util.getParam(cnf) + ",access:" + util.getParam(acc) + "}";
 	} catch (e) {
             throw e;

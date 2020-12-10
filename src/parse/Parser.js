@@ -201,7 +201,7 @@ module.exports = class {
 		        let chd = prs_ret[pidx].child[chd_idx];
 		        if ("tag" === chd.tag) {
                             ret.setting.require.add(chd);
-			} else if ("accessStyle" === chd.tag) {
+			} else if ("htmlStyle" === chd.tag) {
                             ret.setting.access = chd;
                         } else if ("rootConf" === chd.tag) {
 			    ret.setting.rootConf = chd;

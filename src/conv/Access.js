@@ -23,7 +23,7 @@ module.exports = class extends Base {
         try {
             let chk = "{";
 	    chk += "device:";
-            chk += ("default" === prm.tag) ? "'display'" : "'" + prm.tag + "'";
+            chk += ("default" === prm.attrs.device) ? "'display'" : "'" + prm.attrs.device + "'";
 	    chk += ",";
             
             if (undefined !== prm.attrs.os) {

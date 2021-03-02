@@ -49,11 +49,7 @@ module.exports = class extends Base {
                     continue;
 		}
                 
-		let utl_mod = undefined;
-		if ((undefined !== this.gencnf().module) && ('template' === this.gencnf().module.gencnf().comment)) {
-                    utl_mod = this.gencnf().module;
-		}
-		buf = util.getParam(atr,utl_mod);
+		buf = util.getParam(atr);
 		if (undefined !== buf) {
 		    ret += aidx + ":" + buf + ","
 		}

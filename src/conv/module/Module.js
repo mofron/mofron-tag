@@ -74,7 +74,12 @@ module.exports = class extends Base {
                     );
 		}
 		let set = dec.toScript();
-                this.add(set.substring(4, set.length-1));
+                
+		if (true === this.gencnf().addglo) {
+		    global.module.add(set.substring(4, set.length-1));
+		} else {
+                    this.add(set.substring(4, set.length-1));
+                }
 	    }
 	} catch (e) {
             console.error(e.stack);
@@ -93,7 +98,11 @@ module.exports = class extends Base {
                 script += prm.child[chd_idx].name + ",";
 	    }
 	    script = script.substring(0, script.length-1) + "]);";
-            this.add(script);
+	    if (true === this.gencnf().addglo) {
+	        global.module.add(script);
+            } else {
+                this.add(script);
+            }
 	} catch (e) {
             console.error(e.stack);
 	    throw e;
@@ -108,7 +117,11 @@ module.exports = class extends Base {
 
 	    let buf = new global.gen.Config(prm, { defidt:0, module: this }).toScript();
 	    if (-1 === buf.indexOf(".config({});")) {
-	        this.add(buf.substring(0, buf.length-1));
+	        if (true === this.gencnf().addglo) {
+                    global.module.add(buf.substring(0, buf.length-1));
+		} else {
+	            this.add(buf.substring(0, buf.length-1));
+		}
 	    }
 	} catch (e) {
             console.error(e.stack);
@@ -136,8 +149,9 @@ module.exports = class extends Base {
 	        /* config */
 		this.config(prm[pidx]);
             }
-            
-	    return this.m_script;
+            if (true !== this.gencnf().addglo) {
+	        return this.m_script;
+            }
         } catch (e) {
             console.error(e.stack);
             throw e;

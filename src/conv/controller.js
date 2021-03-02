@@ -43,14 +43,16 @@ module.exports = (prs) => {
 	ret += "\n" + scp.toScript();
         
         /* template */
-        ret += "\n" + new Template(prs.template).toScript();
+	let tmpl = new Template(prs.template);
+	global.module = tmpl;
+        ret += "\n" + tmpl.toScript();
         
 	/* component */
-	global.module = new global.gen.Module([get_root_cmp(prs)]);
-	ret += "\n" + global.module.toScript();
+        global.module = new global.gen.Module([get_root_cmp(prs)]);
+        ret += "\n" + global.module.toScript();
         
         /* script (before) */
-	scp.gencnf().type = "before";
+        scp.gencnf().type = "before";
         ret += "\n" + scp.toScript();
         
 	ret += "\n    /* start visible */\n";

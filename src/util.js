@@ -83,7 +83,7 @@ try {
 
         getParam: (prm,mod) => {
             try {
-	        let ret = "";
+                let ret = "";
                 if ("string" === typeof prm) {
 		    return thisobj.getStrParam(prm);
 		} else if (true === Array.isArray(prm)) {
@@ -132,13 +132,7 @@ try {
 		} else if (true === thisobj.isParseTag(prm)) {
                     if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
                         /* user defined tag */
-//console.log(prm);
-                        let set_mod = new global.gen.Module().toScript([prm]);
-			if (undefined === mod) {
-                            global.module.add(set_mod.substring(4, set_mod.length-1));
-			} else {
-                            mod.add(set_mod.substring(4, set_mod.length-1));
-			}
+                        new global.gen.Module(undefined,{ addglo:true }).toScript([prm]);
                         return prm.name;
                     } else if (null !== prm.text) {
 		        throw new Error("unknown route");

@@ -109,7 +109,7 @@ module.exports = class extends Module {
                 this.chkParam(prm[pidx]);
                 
                 this.add("let " + prm[pidx].attrs.name + "=("+ prm[pidx].attrs.name +"_p)=>{");
-
+                
                 /* set name component */
 		for (let cidx in prm[pidx].child) {
                     prm[pidx].child[cidx].name = "tpl" + cidx;
@@ -122,9 +122,9 @@ module.exports = class extends Module {
                     this.config(prm[pidx].child[pidx2]);
 		    ret_str += prm[pidx].child[pidx2].name + ",";
                 }
-
+                
                 this.add(ret_str.substring(0,ret_str.length-1) + "];" + "};");
-
+                
 		ret = "    ";
 		let sp_scp = this.m_script.split("\n");
                 for (let sp_idx in sp_scp) {
@@ -139,7 +139,7 @@ module.exports = class extends Module {
                     
 		}
 	    }
-
+            
 	    return "    /* template */\n" + ret;
         } catch (e) {
             console.error(e.stack);

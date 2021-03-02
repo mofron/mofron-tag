@@ -114,43 +114,73 @@ module.exports = class Spkeys {
     
     theme (key, val) {
         try {
-            if (("object" === typeof val) && (undefined !== val.constructor) && ("ConfArg" === val.constructor.name)) {
-                return this.theme(key, val.value());
-	    }
-            val = (false === Array.isArray(val)) ? [val] : val;
-            let ret = key + ":{";
-            
-	    for (let vidx in val) {
-	        let tag = null;
-	        if (undefined !== val[vidx].tag) {
-                    tag = val[vidx].tag;
-		} else {
-                    for (let tag_idx in val[vidx]) {
-                        tag = tag_idx;
-			break;
-		    }
-		}
-	        /* set theme component name */
-                ret += tag + ":{";
-		let chk_type = (undefined !== val[vidx].attrs) ? val[vidx].attrs : val[vidx][tag];
+            let set_val = val;
+            let ign     = undefined;
+            if ( ("object" === typeof val) &&
+                 (undefined !== val.constructor) &&
+                 ("ConfArg" === val.constructor.name) ) {
+                let value = val.value();
+                set_val   = value[0];
+                ign       = value[1].ignore;
+            }
+             
+            let ret = "";
+            if (true === Array.isArray(set_val)) {
+                for (let vidx in set_val) {
+                    ret += this.themeParam(set_val[vidx],ign) + ",";
+                }
+                ret = ret.substring(0,ret.length-1);
+            } else {
+                ret += this.themeParam(set_val,ign);
+            }
 
-		if (undefined !== chk_type.replace) {
-		    ret += "replace:";
-                    this.m_cnfgen.gencnf().module.toScript([chk_type.replace]);
-		    ret += chk_type.replace.name
-		} else if (undefined !== chk_type.config) {
-                    ret += "config:" + util.getParam(chk_type.config);
-		} else {
-                    throw new Error("could not find theme type");
-		}
-                
-		ret += "},"
-	    }
-            return ret.substring(0, ret.length-1) + "}";
+            return key + ":{" + ret + "}";
 	} catch (e) {
             throw e;
 	}
     }
+    
+    themeParam (val,ign) {
+        try {
+            let ret = "";
+            let tag = (undefined !== val.tag) ? val.tag : Object.keys(val)[0];
+
+            /* set theme component name */
+            ret += tag + ":{";
+            let thm_cnt = (undefined !== val.attrs) ? val.attrs : val[tag];
+            if (undefined !== ign) {
+                thm_cnt.ignore = ign;
+            }
+
+            for (let thm_idx in thm_cnt) {
+                if ("replace" === thm_idx) {
+                    let rep_cnt = thm_cnt.replace;
+		    if (("'" === thm_cnt.replace[0]) || ('"' === thm_cnt.replace[0])) {
+                        rep_cnt = thm_cnt.replace.substring(1,thm_cnt.replace.length-1);
+		    }
+                    ret += "replace:" + rep_cnt;
+                } else if ("config" === thm_idx) {
+                    ret += "config:" + util.getParam(thm_cnt.config);
+                } else if ("ignore" === thm_idx) {
+                    ret += "ignore:";
+                    if (true === Array.isArray(thm_cnt.ignore)) {
+                        ret += "[";
+                        for (let ign_idx in thm_cnt.ignore) {
+                            ret += util.getParam(thm_cnt.ignore[ign_idx]) + ",";
+                        }
+                        ret = ret.substring(0,ret.length-1) + "]";
+                    } else {
+                        ret += util.getParam(thm_cnt.ignore);
+                    }
+                }
+                ret += ",";
+            }
+            return ret.substring(0,ret.length-1) + "}";
+	} catch (e) {
+            throw e;
+        }
+    }
+
     
     
     accessConf (val) {

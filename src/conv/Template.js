@@ -58,7 +58,7 @@ module.exports = class extends Module {
                         return null;
                     } else if (true === Array.isArray(c)) {
 		        for (let arr_idx in c) {
-                            buf = conv(c[arr_tdx]);
+                            buf = conv(c[arr_idx]);
 			    c[arr_idx] = (null !== buf) ? buf : c[arr_idx]; 
                         }
 		    } else if (undefined !== c.constructor) {
@@ -85,11 +85,14 @@ module.exports = class extends Module {
 	    let cret = null;
 	    /* check attributes */
 	    for (let aidx in prm.attrs) {
+
 	        cret = conv(prm.attrs[aidx]);
                 if ("string" === typeof cret) {
                     prm.attrs[aidx] = cret;
+
 		}
 	    }
+
             /* check text */
 	    cret = conv(prm.text);
 	    if ("string" === typeof cret) {
@@ -101,10 +104,34 @@ module.exports = class extends Module {
         }
     }
 
+    declare (prm, bsnm, chd) {
+        try {
+	    let nm_buf = [];
+            for (let pidx in prm) {
+                nm_buf.push(prm[pidx].attrs.name);
+		prm[pidx].attrs.name = undefined;
+            }
+            
+            super.declare(prm, bsnm, chd);
+            
+	    for (let pidx2 in prm) {
+                prm[pidx2].attrs.name = nm_buf[pidx2];
+		if (undefined == prm[pidx2].attrs.name) {
+                    delete prm[pidx2].attrs.name;
+		}
+            }
+
+	} catch (e) {
+            console.error(e.stack);
+	    throw e;
+	}
+    }
+
     toScript () {
         try {
 	    let ret = "";
             let prm = this.param();
+
             for (let pidx in prm) {
                 this.chkParam(prm[pidx]);
                 
@@ -114,12 +141,14 @@ module.exports = class extends Module {
 		for (let cidx in prm[pidx].child) {
                     prm[pidx].child[cidx].name = "tpl" + cidx;
 		}
+
                 this.declare(prm[pidx].child);
-                
+
 		let ret_str = "return [";
 		for (let pidx2 in prm[pidx].child) {
                     this.child(prm[pidx].child[pidx2]);
                     this.config(prm[pidx].child[pidx2]);
+
 		    ret_str += prm[pidx].child[pidx2].name + ",";
                 }
                 

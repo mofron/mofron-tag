@@ -3,15 +3,16 @@
  * @brief util functions
  * @author simparts
  */
-let thisobj = null;
+let util = null;
 let dec_cnt = 0;
 
+
 try {
-    if (null !== thisobj) {
-        module.exports = thisobj;
+    if (null !== util) {
+        module.exports = util;
     }
     
-    thisobj = {
+    util = {
         isComment: (prm) => {
             try {
                 if (("'" === prm[0]) && ("'" === prm[prm.length-1])) {
@@ -85,15 +86,15 @@ try {
             try {
                 let ret = "";
                 if ("string" === typeof prm) {
-		    return thisobj.getStrParam(prm);
+		    return util.getStrParam(prm);
 		} else if (true === Array.isArray(prm)) {
                     ret += "[";
 		    for (let pidx in prm) {
-                        ret += thisobj.getParam(prm[pidx]) + ',';
+                        ret += util.getParam(prm[pidx]) + ',';
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("object" === typeof prm) {
-                    return thisobj.getObjParam(prm,mod);
+                    return util.getObjParam(prm,mod);
 		} else {
 		    return "" + prm;
 		}
@@ -108,7 +109,7 @@ try {
             try {
                 if (true === global.req.isExists(prm)) {
                     return "new " + prm + "()";
-                } else if ( (true === thisobj.isComment(prm)) || (true === thisobj.isNumStr(prm)) ) {
+                } else if ( (true === util.isComment(prm)) || (true === util.isNumStr(prm)) ) {
                     return prm;
                 } else if ("@" === prm[0]) {
                     return  prm.substr(1);
@@ -128,8 +129,8 @@ try {
 	        let ret = "";
                 if ("Object" !== prm.constructor.name) {
 		    /* class parameter */
-                    return thisobj.getClassParam(prm);
-		} else if (true === thisobj.isParseTag(prm)) {
+                    return util.getClassParam(prm);
+		} else if (true === util.isParseTag(prm)) {
                     if ( (true === global.req.isExists(prm.tag)) || ("div" === prm.tag) ) {
                         /* user defined tag */
                         new global.gen.Module(undefined,{ addglo:true }).toScript([prm]);
@@ -139,19 +140,19 @@ try {
 		    }
                 } else if ((1 === Object.keys(prm).length) && (undefined !== prm.mfPull)) {
 		    ret += "new mofron.class.PullConf(";
-                    if ( (true === thisobj.isParseTag(prm.mfPull)) ||
-		         (true === Array.isArray(prm.mfPull)) && (true === thisobj.isParseTag(prm.mfPull[0])) ) {
-                        ret += "{child:"+ thisobj.getParam(prm.mfPull) +"}";
+                    if ( (true === util.isParseTag(prm.mfPull)) ||
+		         (true === Array.isArray(prm.mfPull)) && (true === util.isParseTag(prm.mfPull[0])) ) {
+                        ret += "{child:"+ util.getParam(prm.mfPull) +"}";
 		    } else if ("ConfArg" === prm.mfPull.constructor.name) {
 		        ret += "{";
                         let ca     = prm.mfPull.value();
 			let ca_chd = [];
 			let ca_atr = [];
 			for (let ca_idx in ca) {
-                            if (true === thisobj.isParseTag(ca[ca_idx])) {
+                            if (true === util.isParseTag(ca[ca_idx])) {
                                 ca_chd.push(ca[ca_idx]);
 			    } else if ( (true === Array.isArray(ca[ca_idx])) &&
-			                (true === thisobj.isParseTag(ca[ca_idx][0])) ) {
+			                (true === util.isParseTag(ca[ca_idx][0])) ) {
                                 for (let ca_idx_2 in ca[ca_idx]) {
                                     ca_chd.push(ca[ca_idx][ca_idx_2]);
 				}
@@ -160,7 +161,7 @@ try {
 			    }
 			}
 			if (0 < ca_chd.length) {
-                            ret += "child:" + thisobj.getParam(ca_chd) + ",";
+                            ret += "child:" + util.getParam(ca_chd) + ",";
 			}
 
 			for (let atr_idx in ca_atr) {
@@ -173,15 +174,17 @@ try {
 		    }
                     return ret + ")";
                 } else if ( (undefined !== prm.attrs) && (0 < Object.keys(prm.attrs).length) ) {
-                    return thisobj.getParam(prm.attrs);
+                    return util.getParam(prm.attrs);
                 } else {
 		    /* key value object */
                     if (undefined !== prm.template) {
-		        return thisobj.template(prm.template);
+		        return util.template(prm.template);
                     } else {
 		        let kv_ret = "";
                         for (let pidx in prm) {
-                            kv_ret += pidx + ":" + thisobj.getParam(prm[pidx]) + ",";
+			    kv_ret += pidx + ":";
+                            kv_ret += ("style" === pidx) ? util.style2kv(prm[pidx]) : util.getParam(prm[pidx]);
+			    kv_ret += ",";
                         }
 		        return "{" + kv_ret.substring(0, kv_ret.length-1) + "}";
 		    }
@@ -201,25 +204,25 @@ try {
                     ret += "new mofron.class.ConfArg(";
 		    let ac_val = prm.value();
                     for (let aidx in ac_val) {
-                        ret += thisobj.getParam(ac_val[aidx]) + ",";
+                        ret += util.getParam(ac_val[aidx]) + ",";
                     }
                     ret = ret.substring(0, ret.length-1) + ")";
                 } else if ("Type" === cname) {
-                    return thisobj.getParam(prm.value());
+                    return util.getParam(prm.value());
                 } else if ("ModValue" === cname) {
 		    ret += "new " + prm.name();
 		    let md_val = null;
                     if ("ConfArg" === prm.value().constructor.name) {
-		        md_val = thisobj.getParam(prm.value().value());
+		        md_val = util.getParam(prm.value().value());
 			md_val = md_val.substring(1,md_val.length-1);
                     } else {
-                        md_val = thisobj.getParam(prm.value());
+                        md_val = util.getParam(prm.value());
                     }
 		    ret += "(" + md_val + ")";
                 } else if ("FuncList" === cname) {
                     let fnc_vals = prm.value();
                     for (let fidx in fnc_vals) {
-                        let add_cnf = prm.attrName() + ":" + thisobj.getParam(fnc_vals[fidx]);
+                        let add_cnf = prm.attrName() + ":" + util.getParam(fnc_vals[fidx]);
                         global.module.add(prm.tag().name + ".config({" + add_cnf + "});");
                     }
                     return;
@@ -238,7 +241,7 @@ try {
                     if (true === Array.isArray(prm)) {
 		        ret += "[";
 		        for (let arr in prm) {
-                            ret += thisobj.template(prm[arr]) + ",";
+                            ret += util.template(prm[arr]) + ",";
 			}
 			return ret.substring(0,ret.length-1) + "]";
 		    } else if (undefined === prm.name) {
@@ -249,7 +252,7 @@ try {
                         if ("name" === tidx) {
                             continue;
 			}
-			ret += tidx + ":" + thisobj.getParam(prm[tidx]);
+			ret += tidx + ":" + util.getParam(prm[tidx]);
 		    }
 		    ret += "})";
 		}
@@ -260,11 +263,47 @@ try {
                 throw e;
             }
         },
+
+	style2kv: (prm) => {
+            try {
+                let ret = "{";
+                /* format string */
+                if (true === util.isComment(prm)) {
+                    prm = prm.substring(1, prm.length-1);
+                }
+                /* delete space */
+                let nsp     = prm.split(' ');
+                let nsp_str = "";
+                for (let nsp_idx in nsp) {
+                    nsp_str += nsp[nsp_idx];
+                }
+                /* set every element */
+                let sp_txt = nsp_str.split(';');
+                sp_txt.pop();
+                let sp_elm = null;
+                let buf    = "";
+                for (let sp_idx in sp_txt) {
+                    sp_elm = sp_txt[sp_idx].split(':');
+                    if (2 !== sp_elm.length) {
+                        throw new Error('invalid style');
+                    }
+                    buf += "'" + sp_elm[0] + "':";
+                    let quot = (-1 === sp_elm[1].indexOf('"')) ? '"' : "'";
+                    buf += quot + sp_elm[1] + quot + ",";
+                }
+                ret += buf.substring(0, buf.length-1) + "}";
+                
+                return ret;
+	    } catch (e) {
+                console.error(e.stack);
+                throw e;
+	    }
+	},
         
-	getParentComp: (prm) =>{
+	getParentComp: (prm) => {
             try {
                 if (undefined === prm.parent["name"]) {
-                    return thisobj.getParentComp(prm.parent);
+                    return util.getParentComp(prm.parent);
 		}
 		return prm.parent;
 	    } catch (e) {
@@ -306,7 +345,7 @@ try {
             }
 	}
     }
-    module.exports = thisobj;
+    module.exports = util;
 } catch (e) {
     console.error(e.stack);
     throw e;

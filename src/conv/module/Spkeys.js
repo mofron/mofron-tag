@@ -33,52 +33,15 @@ module.exports = class Spkeys {
     style (key, val) {
         try {
             let ret = key + ":";
-            let txt2kv = (txt) => {
-                try {
-                    let ret = "{";
-                    /* format string */
-                    if (true === util.isComment(txt)) {
-                        txt = txt.substring(1, txt.length-1);
-                    }
-                    /* delete space */
-                    let nsp     = txt.split(' ');
-                    let nsp_str = "";
-                    for (let nsp_idx in nsp) {
-                        nsp_str += nsp[nsp_idx];
-                    }
-                    /* set every element */
-                    let sp_txt = nsp_str.split(';');
-                    sp_txt.pop();
-                    let sp_elm = null;
-                    let buf    = "";
-                    for (let sp_idx in sp_txt) {
-                        sp_elm = sp_txt[sp_idx].split(':');
-                        if (2 !== sp_elm.length) {
-                            throw new Error('invalid style');
-                        }
-                        buf += "'" + sp_elm[0] + "':";
-                        let quot = (-1 === sp_elm[1].indexOf('"')) ? '"' : "'";
-			
-                        buf += quot + sp_elm[1] + quot + ",";
-                    }
-                    ret += buf.substring(0, buf.length-1) + "}";
-                    
-                    return ret;
-                } catch (e) {
-                    console.error(e.stack);
-                    throw e;
-                }
-            };
-
             if ("string" === typeof val) {
-                ret += txt2kv(val);
+                ret += util.style2kv(val);
 	    } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) &&
 	                ("ConfArg" === val.constructor.name) ) {
-	        ret += "new mofron.class.ConfArg(" + txt2kv(val.value()[0]) + "," + util.getParam(val.value()[1]) + ")";
+	        ret += "new mofron.class.ConfArg(" + style2kv(val.value()[0]) + "," + util.getParam(val.value()[1]) + ")";
             } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) ) {
-                let buf = txt2kv(val.text);
+                let buf = style2kv(val.text);
                 val.text = null;
                 if (0 < Object.keys(val.attrs).length) {
                     buf = "[" + sty_buf + ",{" + this.m_cnfgen.optcode(val) + "}]";
@@ -217,29 +180,30 @@ module.exports = class Spkeys {
 	}
     }
     
-    template (key, val) {
+    mfTmpl (key, val) {
         try {
             if (true === Array.isArray(val)) {
                 for (let vidx in val) {
-                    this.template(key,val[vidx]);
+                    this.mfTmpl(key,val[vidx]);
                 }
                 return "";
             } else if ((undefined !== val.constructor) && ("FuncList" === val.constructor.name)) {
                 let fval = val.value();
 		for (let fidx in fval) {
-                    this.template(key, fval[fidx]);
+                    this.mfTmpl(key, fval[fidx]);
 		}
 		return "";
 	    } else {
 	        let set     = "";
 	        let set_prm = "";
                 for (let vidx2 in val) {
-                    if ("name" == vidx2) {
+                    if ("ref" == vidx2) {
                         continue;
                     }
                     set_prm += '"' + vidx2 + '":' + util.getParam(val[vidx2]) + ",";
                 }
-                set += val.name+ "({"+ set_prm.substring(0,set_prm.length-1) + "})";
+                
+                set += val.ref+ "({"+ set_prm.substring(0,set_prm.length-1) + "})";
                 this.m_cnfgen.gencnf().module.add(
                     this.m_prm.name + ".child(" + set + ");"
                 );

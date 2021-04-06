@@ -177,8 +177,8 @@ try {
                     return util.getParam(prm.attrs);
                 } else {
 		    /* key value object */
-                    if (undefined !== prm.template) {
-		        return util.template(prm.template);
+                    if (undefined !== prm.mfTmpl) {
+		        return util.template(prm.mfTmpl);
                     } else {
 		        let kv_ret = "";
                         for (let pidx in prm) {
@@ -244,19 +244,19 @@ try {
                             ret += util.template(prm[arr]) + ",";
 			}
 			return ret.substring(0,ret.length-1) + "]";
-		    } else if (undefined === prm.name) {
+		    } else if (undefined === prm.ref) {
                         throw new Error("could not find name attribute at 'template' tag");
 		    }
-		    ret = prm.name + "({";
+		    ret = prm.ref + "({";
 		    for (let tidx in prm) {
-                        if ("name" === tidx) {
+                        if ("ref" === tidx) {
                             continue;
 			}
-			ret += tidx + ":" + util.getParam(prm[tidx]);
+			ret += tidx + ":" + util.getParam(prm[tidx]) + ",";
 		    }
+		    ret = ret.substring(0,ret.length-1);
 		    ret += "})";
 		}
-
 	        return ret;
             } catch (e) {
                 console.error(e.stack);

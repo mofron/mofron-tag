@@ -38,10 +38,10 @@ module.exports = class Spkeys {
 	    } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) &&
 	                ("ConfArg" === val.constructor.name) ) {
-	        ret += "new mofron.class.ConfArg(" + style2kv(val.value()[0]) + "," + util.getParam(val.value()[1]) + ")";
+	        ret += "new mofron.class.ConfArg(" + util.style2kv(val.value()[0]) + "," + util.getParam(val.value()[1]) + ")";
             } else if ( ("object" === typeof val) &&
 	                (false === Array.isArray(val)) ) {
-                let buf = style2kv(val.text);
+                let buf = util.style2kv(val.text);
                 val.text = null;
                 if (0 < Object.keys(val.attrs).length) {
                     buf = "[" + sty_buf + ",{" + this.m_cnfgen.optcode(val) + "}]";
@@ -234,6 +234,7 @@ module.exports = class Spkeys {
             return ret + ",";
         } catch (e) {
             console.warn("*** warning: unknown " + e.message + " value");
+	    throw e;
             return e.message + ":undefined,";
         }
     }

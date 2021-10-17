@@ -1,6 +1,6 @@
 {
   "name": "mofron-tag",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "mofron tag",
   "preferGlobal" : true,
   "bin" : {
@@ -16,7 +16,7 @@
   "dependencies": {
     "fs" : "",
     "node-html-parser" : "1.2.20",
-    "minify" : "",
+    "minify" : "7.1.0",
     "try-to-catch" : ""
   },
   "author": "simparts",

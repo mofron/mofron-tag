@@ -78,6 +78,17 @@ module.exports = class {
     
     async parse () {
         try {
+            let load_script = (src) => {
+                return new Promise(resolve => {
+                    fs.readFile(
+		        src,
+			'utf8',
+                        (err,scp) => { resolve(scp); }
+                    );
+                });
+	    };
+            
+            
             this.m_return = this.convprs(this.m_tagtxt);
 	    let prs_obj   = this;
             /* load script contents that are separated file */
@@ -87,11 +98,12 @@ module.exports = class {
 		    if (true === util.isComment(scp.attrs.src)) {
 		        scp.attrs.src = scp.attrs.src.substring(1, scp.attrs.src.length-1);
                     }
-		    const [error, data] = await tryToCatch(minify, scp.attrs.src);
-		    if (error) {
-                        throw new Error(error);
-		    }
-		    scp.text = data;
+		    //const [error, data] = await tryToCatch(minify, scp.attrs.src);
+ 		    //if (error) {
+                    //    throw new Error(error);
+ 		    //}
+     		    //scp.text = data;
+                    scp.text = await load_script(scp.attrs.src);
 		} 
             }
             /* set gloabal area */

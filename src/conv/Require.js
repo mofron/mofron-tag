@@ -31,7 +31,9 @@ module.exports = class extends Base {
 	    let prm = this.param();
 
             for (let pidx in prm) {
-                let line = "const " + prm[pidx].text + "=require(";
+	        let line = (null === prm[pidx].text) ? "" : "const " + prm[pidx].text + "=";
+                line += "require(";
+		
                 if (true === util.isComment(prm[pidx].attrs.load)) {
                     line += prm[pidx].attrs.load + ");";
                 } else {

@@ -56,6 +56,7 @@ module.exports = (prs) => {
         ret += "\n" + scp.toScript();
         
 	ret += "\n    /* start visible */\n";
+	ret += "mofron.root.push(root_cmp);\n";
 	scp.gencnf().type = "after";
 	ret += "    root_cmp.visible(true,() => {try{\n\n" + scp.toScript();
 	ret += "\n    }catch(e){console.error(e.stack);}});\n";

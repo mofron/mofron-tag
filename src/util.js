@@ -94,6 +94,13 @@ try {
 		    }
 		    ret = ret.substring(0, ret.length-1) + "]";
 		} else if ("object" === typeof prm) {
+		    if (1 === Object.keys(prm).length) {
+		        if (undefined !== prm.mfString) {
+                            return '"' + prm.mfString + '"';
+			} else if (undefined !== prm.mfNumber) {
+                            return parseInt(prm.mfNumber);
+			}
+		    }
                     return util.getObjParam(prm,mod);
 		} else {
 		    return "" + prm;

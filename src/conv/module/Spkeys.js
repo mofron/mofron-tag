@@ -77,27 +77,45 @@ module.exports = class Spkeys {
     
     theme (key, val) {
         try {
-            let set_val = val;
-            let ign     = undefined;
-            if ( ("object" === typeof val) &&
-                 (undefined !== val.constructor) &&
-                 ("ConfArg" === val.constructor.name) ) {
-                let value = val.value();
-                set_val   = value[0];
-                ign       = value[1].ignore;
-            }
-             
-            let ret = "";
-            if (true === Array.isArray(set_val)) {
-                for (let vidx in set_val) {
-                    ret += this.themeParam(set_val[vidx],ign) + ",";
-                }
-                ret = ret.substring(0,ret.length-1);
-            } else {
-                ret += this.themeParam(set_val,ign);
-            }
+            let set_val = [];
+	    if ( ("object" === typeof val) &&
+	         (undefined !== val.constructor) &&
+		 ("ConfArg" === val.constructor.name) ) {
+                let ca_val = val.value();
+                if (true === Array.isArray(ca_val[0])) {
+                    for (let ca_idx1 in ca_val[0]) {
+                        set_val.push(ca_val[0][ca_idx1]);
+		    }
+		} else {
+                    set_val.push(ca_val[0]);
+		}
+                
+                for (let ca_idx2 in ca_val[1]) {
+		    let add_val = {};
+		    add_val[ca_idx2] = ca_val[1][ca_idx2];
+                    set_val.push(add_val);
+		}
+	    } else if (true === Array.isArray(val)) {
+                for (let vidx in val) {
+                    set_val.push(val[vidx]);
+		}
+	    } else if ("object" === typeof val) {
+		for (let vidx in val) {
+                    let add_val = {};
+		    add_val[vidx] = val[vidx];
+		    set_val.push(add_val);
+		}
+	    } else {
+                throw new Error('unknown route');
+	    }
 
+            let ret = "";
+	    for (let set_idx in set_val) {
+                ret += this.themeParam(set_val[set_idx]) + ",";
+	    }
+	    ret = ret.substring(0,ret.length-1);
             return key + ":{" + ret + "}";
+
 	} catch (e) {
             throw e;
 	}
@@ -216,7 +234,6 @@ module.exports = class Spkeys {
 
     toScript (key, val) {
         try {
-
             let ret = "";
             
 	    if ("accessConf" === key) {
@@ -230,7 +247,6 @@ module.exports = class Spkeys {
             } else {
                 return null;
             }
-            
             return ret + ",";
         } catch (e) {
             console.warn("*** warning: unknown " + e.message + " value");

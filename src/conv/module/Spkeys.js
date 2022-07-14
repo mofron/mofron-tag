@@ -100,10 +100,14 @@ module.exports = class Spkeys {
                     set_val.push(val[vidx]);
 		}
 	    } else if ("object" === typeof val) {
-		for (let vidx in val) {
-                    let add_val = {};
-		    add_val[vidx] = val[vidx];
-		    set_val.push(add_val);
+	        if (undefined !== val.tag) {
+                    set_val.push(val);
+		} else {
+		    for (let vidx in val) {
+                        let add_val = {};
+		        add_val[vidx] = val[vidx];
+		        set_val.push(add_val);
+		    }
 		}
 	    } else {
                 throw new Error('unknown route');

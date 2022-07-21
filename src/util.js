@@ -273,34 +273,48 @@ try {
 
 	style2kv: (prm) => {
             try {
-                let ret = "{";
-                /* format string */
-                if (true === util.isComment(prm)) {
-                    prm = prm.substring(1, prm.length-1);
+	        let _prm = prm;
+                if ( (('"' === prm[0]) && ('"' === prm[prm.length-1])) ||
+                     (("'" === prm[0]) && ("'" === prm[prm.length-1])) ) {
+                    _prm = prm.substring(1, prm.length-1);
                 }
-                /* delete space */
-                let nsp     = prm.split(' ');
-                let nsp_str = "";
-                for (let nsp_idx in nsp) {
-                    nsp_str += nsp[nsp_idx];
-                }
-                /* set every element */
-                let sp_txt = nsp_str.split(';');
-                sp_txt.pop();
-                let sp_elm = null;
-                let buf    = "";
-                for (let sp_idx in sp_txt) {
-                    sp_elm = sp_txt[sp_idx].split(':');
-                    if (2 !== sp_elm.length) {
-                        throw new Error('invalid style');
-                    }
-                    buf += "'" + sp_elm[0] + "':";
-                    let quot = (-1 === sp_elm[1].indexOf('"')) ? '"' : "'";
-                    buf += quot + sp_elm[1] + quot + ",";
-                }
-                ret += buf.substring(0, buf.length-1) + "}";
-                
-                return ret;
+
+                let style_kv = {};
+		let mode     = ['key','find-val','value'];
+		let midx     = 0;
+		let k_buff   = '';
+		let v_buff   = '';
+		for (let pidx in _prm) {
+		    if ('key' === mode[midx]) {
+                        if (':' === _prm[pidx]) {
+			    style_kv[k_buff] = '';
+			    midx++;
+			} else {
+                            k_buff += _prm[pidx];
+			}
+		    } else if ('find-val' === mode[midx]) {
+                        if (' ' !== _prm[pidx]) {
+			    style_kv[k_buff] += _prm[pidx];
+                            midx++;
+			}
+		    } else if ('value' === mode[midx]) {
+                        if (';' !== _prm[pidx]) {
+                            style_kv[k_buff] += _prm[pidx];
+			} else {
+			    k_buff = '';
+                            midx++;
+			}
+		    }
+		    if (2 < midx) {
+                        midx = 0;
+		    }
+		}
+                let ret = '{';
+		for (let sidx in style_kv) {
+                    ret += "'" + sidx + "':'" + style_kv[sidx] + "',";
+		}
+                ret = ret.substring(0, ret.length-1) + '}';
+		return ret;
 	    } catch (e) {
                 console.error(e.stack);
                 throw e;

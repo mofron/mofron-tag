@@ -23,8 +23,9 @@ global.module = null;
 module.exports = (prs) => {
     try {
         /* require */
+	let ret = "( async () => {\n";
 	global.req = prs.setting.require;
-        let ret = new Require(prs.setting.require.module()).toScript();
+        ret += new Require(prs.setting.require.module()).toScript();
         ret += "const comutl=mofron.util.common;\n";
 	ret += "const cmputl=mofron.util.component;\n";
         ret += "try {\n";
@@ -61,6 +62,7 @@ module.exports = (prs) => {
 	ret += "    root_cmp.visible(true,() => {try{\n\n" + scp.toScript();
 	ret += "\n    }catch(e){console.error(e.stack);}});\n";
         ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
+        ret += "} )();";
 
 	return ret;
     } catch (e) {

@@ -33,7 +33,6 @@ let child = async (cmp) => {
 	}
         
         if (0 === cmp.tag.indexOf("mfLoad")) {
-//console.log(cmp.tag);
 	    for (let load_idx in global.parse.component) {
                 if ("mfLoad" !== global.parse.component[load_idx].tag) {
                     continue;
@@ -206,7 +205,6 @@ module.exports = (prm) => {
             for (let pidx in prm) {
                 child(prm[pidx]);
             }
-
 	    if (0 === global.load) {
                 rsl();
 	    }

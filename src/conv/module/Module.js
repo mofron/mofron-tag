@@ -95,6 +95,15 @@ module.exports = class extends Base {
 	    let script = prm.name + ".child([";
 	    for (let chd_idx in prm.child) {
                 this.child(prm.child[chd_idx]);
+
+                if (true === prm.child[chd_idx].attrs.mfDefinition) {
+                    /* this tag is only definition */
+		    if (1 === prm.child.length) {
+                        return;
+		    }
+                    continue;
+		}
+
                 script += prm.child[chd_idx].name + ",";
 	    }
 	    script = script.substring(0, script.length-1) + "]);";

@@ -248,6 +248,8 @@ module.exports = class Spkeys {
                 ret += this[key](key, val);
 	    } else if ("mfParam" === key) {
 	        ret += this.m_cnfgen.cnfcode({ attrs: val });
+            } else if ("mfDefinition" === key) {
+	        return "";
             } else {
                 return null;
             }

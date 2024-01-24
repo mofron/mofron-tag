@@ -29,9 +29,11 @@ module.exports = class extends Base {
 	    this.add("require('mofron');",0);
 
 	    let prm = this.param();
-
+            
+	    /* const XXX = require('xxx') */
+	    let line = "";
             for (let pidx in prm) {
-	        let line = (null === prm[pidx].text) ? "" : "const " + prm[pidx].text + "=";
+	        line = (null === prm[pidx].text) ? "" : "const " + prm[pidx].text + "=";
                 line += "require(";
 		
                 if (true === util.isComment(prm[pidx].attrs.load)) {
@@ -41,6 +43,12 @@ module.exports = class extends Base {
                 }
                 this.add(line, 0);
             }
+
+	    /* mofron.require */
+            this.add('mofron.require = {}', 0);
+	    for (let pidx_2 in prm) {
+                this.add("mofron.require['" + prm[pidx_2].text + "']=" + prm[pidx_2].text + ";");
+	    }
             
             return this.m_script;
         } catch (e) {

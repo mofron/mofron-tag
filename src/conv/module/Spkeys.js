@@ -118,6 +118,7 @@ module.exports = class Spkeys {
                 ret += this.themeParam(set_val[set_idx]) + ",";
 	    }
 	    ret = ret.substring(0,ret.length-1);
+
             return key + ":{" + ret + "}";
 
 	} catch (e) {
@@ -145,6 +146,14 @@ module.exports = class Spkeys {
 		    }
                     ret += "replace:" + rep_cnt;
                 } else if ("config" === thm_idx) {
+		    for (let thm_cidx in thm_cnt.config) {
+                        if (('event' === thm_cidx) || (('effect' === thm_cidx) || ('layout' === thm_cidx))) {
+			    if (false === Array.isArray(thm_cnt.config[thm_cidx])) {
+			        /* module config of theme config must be array */
+                                thm_cnt.config[thm_cidx] = [thm_cnt.config[thm_cidx]];
+                            }
+		        }
+                    }
                     ret += "config:" + util.getParam(thm_cnt.config);
                 } else if ("ignore" === thm_idx) {
                     ret += "ignore:";

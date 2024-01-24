@@ -9,31 +9,6 @@ const Spkeys = require('./Spkeys.js');
 
 module.exports = class extends Base {
     
-//    child (prm) {
-//        try {
-//	    let ret  ="";
-//            if (0 === prm.child.length) {
-//	        return "";
-//            }
-//            ret += "child:[";
-//            
-//	    let elm = null;
-//            for (let chd_idx in prm.child) {
-//	        elm = prm.child[chd_idx];
-//                
-//		ret += "new " + elm.tag + "({";
-//	        ret += this.child(elm);
-//                ret += this.cnfcode(elm) + "}),";
-//	    }
-//	    ret = ret.substring(0,ret.length-1);
-//            
-//            return ret + "],";
-//	} catch (e) {
-//            console.error(e.stack);
-//	    throw e;
-//	}
-//    }
-    
     cnfcode (prm) {
         try {
             let ret = "";
@@ -51,6 +26,9 @@ module.exports = class extends Base {
                 
 		buf = util.getParam(atr);
 		if (undefined !== buf) {
+		    //if (('event' === aidx) || ('effect' === aidx) || ('layout' === aidx)) {
+                    //    buf = '[' + buf + ']';
+		    //}
 		    ret += aidx + ":" + buf + ","
 		}
 	    }

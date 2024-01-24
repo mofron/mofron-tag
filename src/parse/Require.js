@@ -106,24 +106,31 @@ module.exports = class Require {
 	    }
 	    let mod     = this.module();
 	    let sp_load = null;
+	    let ret_lst = {
+	        "comp": "cmp",
+		"event": "evt",
+		"effect": "eff",
+		"layout": "lot"
+            };
+
 	    for (let midx in mod) {
 	        if (prm !== mod[midx].text) {
                     continue;
 		}
+
 	        sp_load = mod[midx].attrs.load.split('-');
 		if (3 !== sp_load.length) {
-                    continue;
+		    if (undefined == mod[midx].attrs['type']) {
+                        throw new Error(prm+' is user defined mofron class. but could not find "type" attribute.');
+                    }
+                    let sub_type = mod[midx].attrs['type'].substring(1,mod[midx].attrs['type'].length-1);
+		    if (undefined == ret_lst[sub_type]) {
+                        throw new Error(prm+' is user defined mofron class. but "type" attribute is invalid.');
+                    }
+                    return ret_lst[sub_type];
 		}
 		let type = sp_load[1];
-		if ("comp" === type) {
-                    return "cmp";
-		} else if ("event" === type) {
-                    return "evt";
-		} else if ("effect" === type) {
-                    return "eff";
-		} else if ("layout" === type) {
-		    return "lot";
-		}
+		return ret_lst[type];
 	    }
 	} catch (e) {
             console.error(e.stack);

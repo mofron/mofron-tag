@@ -23,7 +23,10 @@ global.module = null;
 module.exports = (prs) => {
     try {
         /* require */
-	let ret = "( async () => {\n\n";
+	let ret = "( async () => {\n";
+	ret += "if (null === document.body) {\n";
+	ret += "    location.reload();\n";
+	ret += "}\n";
 	global.req = prs.setting.require;
         ret += new Require(prs.setting.require.module()).toScript();
         ret += "const comutl=mofron.util.common;\n";
@@ -88,6 +91,7 @@ let get_root_cmp = (prs) => {
 	    }
         }
         ret.child = prs.component;
+
         return ret;
     } catch (e) {
         console.error(e.stack);

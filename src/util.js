@@ -190,7 +190,12 @@ try {
 		        let kv_ret = "";
                         for (let pidx in prm) {
 			    kv_ret += pidx + ":";
-                            kv_ret += ("style" === pidx) ? util.style2kv(prm[pidx]) : util.getParam(prm[pidx]);
+
+			    if (("style" === pidx) && ('string' === typeof prm[pidx])) {
+			        kv_ret += util.style2kv(prm[pidx])
+                            } else {
+                                kv_ret += util.getParam(prm[pidx]);
+			    }
 			    kv_ret += ",";
                         }
 		        return "{" + kv_ret.substring(0, kv_ret.length-1) + "}";

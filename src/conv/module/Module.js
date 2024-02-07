@@ -38,7 +38,6 @@ module.exports = class extends Base {
 		    let set_name = ("div" === prm[pidx].tag) ? "cmp" : global.req.getType(prm[pidx].tag);
                     dec.gencnf().name = set_name + global.mod.count++;
 		}
-//console.log(dec.gencnf().name);
                 
 		let tag     = ("div" === prm[pidx].tag) ? "mofron.class.Component" : prm[pidx].tag;
 		let set_val = "new " + tag + "(";
@@ -65,7 +64,6 @@ module.exports = class extends Base {
 		}
                 dec.value(set_val + ");");
 	        prm[pidx].name = dec.name();
-//console.log(prm[pidx].name);
                 
 		/* child component declare */
 		if (0 !== prm[pidx].child.length) {

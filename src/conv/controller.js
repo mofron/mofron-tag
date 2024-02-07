@@ -20,15 +20,18 @@ global.module = null;
 /**
  * convert parsed object to script string
  */
-module.exports = (prs) => {
+module.exports = (prs, spa) => {
     try {
         /* require */
-	let ret = "( async () => {\n";
-	ret += "if (null === document.body) {\n";
-	ret += "    location.reload();\n";
-	ret += "}\n";
+//console.log(prs.setting.require.module());
+	let ret = "( async () => {\n\n";
+	let require = new Require(prs.setting.require.module());
+	if (true === spa) {
+	    require.mofron_flag(false);
+        }
 	global.req = prs.setting.require;
-        ret += new Require(prs.setting.require.module()).toScript();
+        //ret += new Require(prs.setting.require.module()).toScript();
+	ret += require.toScript();
         ret += "const comutl=mofron.util.common;\n";
 	ret += "const cmputl=mofron.util.component;\n";
         ret += "try {\n";
@@ -91,7 +94,6 @@ let get_root_cmp = (prs) => {
 	    }
         }
         ret.child = prs.component;
-
         return ret;
     } catch (e) {
         console.error(e.stack);

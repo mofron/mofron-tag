@@ -26,9 +26,6 @@ module.exports = class extends Base {
                 
 		buf = util.getParam(atr);
 		if (undefined !== buf) {
-		    //if (('event' === aidx) || ('effect' === aidx) || ('layout' === aidx)) {
-                    //    buf = '[' + buf + ']';
-		    //}
 		    ret += aidx + ":" + buf + ","
 		}
 	    }

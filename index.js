@@ -50,12 +50,12 @@ let exec = async () => {
 	    await sort([global.parse.setting.rootConf]);
         }
 
-	let js = mfconverter(global.parse);
+	let js = mfconverter(global.parse, ('--spa' === process.argv[4]) ? true:false);
         
 	/* write converted js code */
 	if (4 > process.argv.length) {
 	    console.log(js);
-	} else if (4 === process.argv.length) {
+	} else {
             fs.writeFile(
 	        process.argv[3], js,
 		(err) => { if (null !== err) console.log(err); }

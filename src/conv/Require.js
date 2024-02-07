@@ -14,6 +14,7 @@ module.exports = class extends Base {
             
 	    this.gencnf().defidt  = 0;
             this.gencnf().comment = "require";
+            this.m_mofron = true;
 
             /* set config */
             this.gencnf(cnf);
@@ -23,10 +24,21 @@ module.exports = class extends Base {
         }
     }
 
+    mofron_flag (prm) {
+        try {
+            this.m_mofron = prm;
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
+    }
+
     toScript () {
         try {
 	    super.toScript();
-	    this.add("require('mofron');",0);
+            if (true === this.m_mofron) {
+                this.add("require('mofron');",0);
+            }
 
 	    let prm = this.param();
             
@@ -44,12 +56,6 @@ module.exports = class extends Base {
                 this.add(line, 0);
             }
 
-	    /* mofron.require */
-            this.add('mofron.require = {}', 0);
-	    for (let pidx_2 in prm) {
-                this.add("mofron.require['" + prm[pidx_2].text + "']=" + prm[pidx_2].text + ";");
-	    }
-            
             return this.m_script;
         } catch (e) {
             console.error(e.stack);

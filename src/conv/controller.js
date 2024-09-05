@@ -20,18 +20,28 @@ global.module = null;
 /**
  * convert parsed object to script string
  */
-module.exports = (prs, spa) => {
+module.exports = (prs, opt) => {
     try {
         /* require */
-//console.log(prs.setting.require.module());
-	let ret = "( async () => {\n\n";
+	let ret     = "( async () => {\n\n";
 	let require = new Require(prs.setting.require.module());
-	if (true === spa) {
+	if (true === opt.spa) {
 	    require.mofron_flag(false);
         }
 	global.req = prs.setting.require;
-        //ret += new Require(prs.setting.require.module()).toScript();
-	ret += require.toScript();
+	//ret += 
+	if (true === opt.dyn) {
+	    let req_gen = require.toScript();
+            req_gen = req_gen.split('\n');
+            req_gen.splice(1,1);
+	    for (let req_idx in req_gen) {
+                ret += req_gen[req_idx] + '\n';
+	    }
+        } else {
+            ret += require.toScript();
+	}
+
+
         ret += "const comutl=mofron.util.common;\n";
 	ret += "const cmputl=mofron.util.component;\n";
         ret += "try {\n";
@@ -56,20 +66,39 @@ module.exports = (prs, spa) => {
         
 	/* component */
         global.module = new global.gen.Module([get_root_cmp(prs)]);
-        ret += "\n" + global.module.toScript();
-        
+	if (true === opt.dyn) {
+	    let mod_gen   = "\n" + global.module.toScript();
+            mod_gen = mod_gen.split('\n');
+	    mod_gen.splice(3,2);
+	    for (let mod_idx in mod_gen) {
+                ret += mod_gen[mod_idx] + '\n';
+	    }
+        } else {
+            ret += "\n" + global.module.toScript();
+	}
+
+
         /* script (before) */
         scp.gencnf().type = "before";
         ret += "\n" + scp.toScript();
         
 	ret += "\n    /* start visible */\n";
-	ret += "    mofron.root.push(root_cmp);\n";
-	scp.gencnf().type = "after";
-	ret += "    root_cmp.visible(true,() => {\n        try{\n    " + scp.toScript();
-	ret += "\n        } catch(e) {\n            console.error(e.stack);\n        }\n    });\n";
-        ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
-        ret += "\n})();";
+	if (true === opt.dyn) {
 
+	} else {
+	    ret += "    mofron.root.push(root_cmp);\n";
+	}
+	scp.gencnf().type = "after";
+
+	if (true === opt.dyn) {
+	    ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
+	} else {
+            ret += "    root_cmp.visible(true,() => {\n        try{\n    " + scp.toScript();
+	    ret += "\n        } catch(e) {\n            console.error(e.stack);\n        }\n    });\n";
+            ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
+        }
+
+        ret += "\n})();";
 	return ret;
     } catch (e) {
         console.error(e.stack);

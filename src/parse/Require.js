@@ -120,15 +120,8 @@ module.exports = class Require {
 
 	        sp_load = mod[midx].attrs.load.split('-');
 		if (3 !== sp_load.length) {
-		    if (undefined == mod[midx].attrs['type']) {
-                        throw new Error(prm+' is user defined mofron class. but could not find "type" attribute.');
-                    }
-                    let sub_type = mod[midx].attrs['type'].substring(1,mod[midx].attrs['type'].length-1);
-		    if (undefined == ret_lst[sub_type]) {
-                        throw new Error(prm+' is user defined mofron class. but "type" attribute is invalid.');
-                    }
-                    return ret_lst[sub_type];
-		}
+                    return "user";
+                }
 		let type = sp_load[1];
 		return ret_lst[type];
 	    }

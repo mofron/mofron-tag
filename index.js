@@ -5,7 +5,7 @@
  * @author simparts
  */
 const fs = require('fs');
-const Parser = require('./src/parse/Parser.js');
+const Parser = require('./src/parse/aaaParser.js');
 const sort = require('./src/parse/sort.js');
 const mfconverter = require('./src/conv/controller.js');
 
@@ -49,9 +49,18 @@ let exec = async () => {
         if (0 < Object.keys(global.parse.setting.rootConf).length) {
 	    await sort([global.parse.setting.rootConf]);
         }
-
-	let js = mfconverter(global.parse, ('--spa' === process.argv[4]) ? true:false);
         
+	let opt = { spa:false, dyn:false };
+        if (4 < process.argv.length) {
+            if ('--spa' === process.argv[4]) {
+                opt.spa = true;
+	    } else if ('--dyn' === process.argv[4]) {
+                opt.dyn = true;
+	    }
+	}
+
+	let js = mfconverter(global.parse, opt);
+
 	/* write converted js code */
 	if (4 > process.argv.length) {
 	    console.log(js);

@@ -5,7 +5,7 @@
  * @author simparts
  */
 const fs = require('fs');
-const Parser = require('./src/parse/aaaParser.js');
+const Parser = require('./src/parse/Parser.js');
 const sort = require('./src/parse/sort.js');
 const mfconverter = require('./src/conv/controller.js');
 

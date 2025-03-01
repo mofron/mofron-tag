@@ -87,14 +87,16 @@ module.exports = (prs, opt) => {
 
 	} else {
 	    ret += "    mofron.root.push(root_cmp);\n";
+	    ret += "    setTimeout(()=>{\n";
 	}
 	scp.gencnf().type = "after";
 
 	if (true === opt.dyn) {
 	    ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
 	} else {
-            ret += "    root_cmp.visible(true,() => {\n        try{\n    " + scp.toScript();
-	    ret += "\n        } catch(e) {\n            console.error(e.stack);\n        }\n    });\n";
+            ret += "        root_cmp.visible(true,() => {\n            try{\n    " + scp.toScript();
+	    ret += "\n            } catch(e) {\n                console.error(e.stack);\n            }\n        });\n";
+	    ret += "    },100);\n";
             ret += "} catch (e) {\n    console.error(e.stack);\n}\n";
         }
 
